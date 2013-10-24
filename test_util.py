@@ -223,6 +223,53 @@ class TestWeaklyBoundCallable(unittest.TestCase):
         gc.collect()
         self.assertEqual(my_ref(), None)
 
+    def test_reverted(self):
+
+        class MyClass(object):
+
+            def my_method(self):
+                return self
+
+            @classmethod
+            def my_classmethod(cls):
+                return cls
+
+        def my_function(arg=None):
+            return arg
+
+        instance1 = MyClass()
+        instance2 = MyClass()
+        wbm1 = WeaklyBoundCallable(instance1.my_method)
+        wbm2 = WeaklyBoundCallable(instance2.my_method)
+        wbc0 = WeaklyBoundCallable(MyClass.my_classmethod)
+        wbc1 = WeaklyBoundCallable(instance1.my_classmethod)
+        wbc2 = WeaklyBoundCallable(instance2.my_classmethod)
+        wbf0 = WeaklyBoundCallable(my_function)
+        self.assertEqual(wbm1(), instance1)
+        self.assertEqual(wbm2(), instance2)
+        self.assertEqual(wbc0(), MyClass)
+        self.assertEqual(wbc1(), MyClass)
+        self.assertEqual(wbc2(), MyClass)
+        self.assertEqual(my_function(), None)
+        rvm1 = wbm1.reverted()
+        rvm2 = wbm2.reverted()
+        rvc0 = wbc1.reverted()
+        rvc1 = wbc1.reverted()
+        rvc2 = wbc2.reverted()
+        rvf0 = wbf0.reverted()
+        self.assertEqual(rvm1(), instance1)
+        self.assertEqual(rvm2(), instance2)
+        self.assertEqual(rvc0(), MyClass)
+        self.assertEqual(rvc1(), MyClass)
+        self.assertEqual(rvc2(), MyClass)
+        self.assertEqual(rvf0(), None)
+        self.assertEqual(rvm1, instance1.my_method)
+        self.assertEqual(rvm2, instance2.my_method)
+        self.assertEqual(rvc0, MyClass.my_classmethod)
+        self.assertEqual(rvc1, instance1.my_classmethod)
+        self.assertEqual(rvc2, instance2.my_classmethod)
+        self.assertEqual(rvf0, my_function)
+
     def test_equality(self):
 
         class MyClass(object):

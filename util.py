@@ -96,22 +96,32 @@ class WeaklyBoundCallable(object):
     def __init__(self, fn):
         self.__func__ = getattr(fn, '__func__', fn)
         try:
-            self.__self__ = getattr(fn, '__self__')
+            self.__self__ = fn.__self__
             self._is_bound = True
         except AttributeError:
             self._is_bound = False
+        self._stored_hash = id(self.__func__) ^ id(self.__self__)
 
     @property
     def __self__(self):
-        return self.__self() if self.__self is not None else None
+        return self._ref() if hasattr(self, '_ref') else None
 
     @__self__.setter
     def __self__(self, value):
-        self.__self = ref(value) if value is not None else None
+        if value is not None:
+            self._ref = ref(value)
 
     @__self__.deleter
     def __self__(self):
-        del self.__self
+        del self._ref
+
+    def reverted(self):
+        """ returns copy of callable with original bind state"""
+
+        if self._is_bound:
+            return self.__func__.__get__(self.__self__)
+        else:
+            return self.__func__
 
     def __call__(self, *args, **kwargs):
         if self._is_bound:
@@ -121,14 +131,15 @@ class WeaklyBoundCallable(object):
 
     def __eq__(self, other):
         if isinstance(other, WeaklyBoundCallable):
+            h = self._stored_hash == other._stored_hash
             f = self.__func__ == getattr(other, '__func__', other)
             b = self._is_bound == other._is_bound
             s = self.__self__ == other.__self__
-            return f and b and s
+            return h and f and b and s
         return False
 
     def __ne__(self, other):
         return not (self.__eq__(other))
 
     def __hash__(self):
-        return id(self.__func__) ^ id(self.__self__)
+        return self._stored_hash
