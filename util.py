@@ -147,6 +147,16 @@ class WeaklyBoundCallable(object):
 
 class UppercaseAliasingMixin(object):
 
+    """
+    a mix-in that aliases attributes to UPPERCASE equivalents
+
+    E.g., assuming a class with method `MY_METHOD`, this mixin 
+    aliases `instance.my_method`, `instance.mY_mEtHoD`, etc.
+
+    If you want this to affect class methods, this mixin should
+    be added to the relevant metaclass
+    """
+
     def __getattribute__(this, name):
         class_type = object.__getattribute__(this, '__class__')
         super_proxy = super(UppercaseAliasingMixin, this)
