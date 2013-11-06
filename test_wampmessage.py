@@ -24,11 +24,11 @@ class TestWAMPMessageType(unittest.TestCase):
             WAMPMessageType.notreal
 
     def test_single_instances(self):
-        self.assertEqual(id(WAMPMessageType.WELCOME), 
+        self.assertEqual(id(WAMPMessageType.WELCOME),
                          id(WAMPMessageType.welcome))
-        self.assertEqual(id(WAMPMessageType.CaLl), 
+        self.assertEqual(id(WAMPMessageType.CaLl),
                          id(WAMPMessageType.cAlL))
-        self.assertNotEqual(id(WAMPMessageType.WELCOME), 
+        self.assertNotEqual(id(WAMPMessageType.WELCOME),
                             id(WAMPMessageType.CALL))
 
 
@@ -38,7 +38,7 @@ class TestWAMPMessage(unittest.TestCase):
         with self.assertRaises(Exception):
             base = WAMPMessage()
         welcome = WAMPMessage(type=WAMPMessageType.WELCOME,
-                           session_id="session1")
+                              session_id="session1")
         self.assertTrue(isinstance(welcome, WAMPMessage))
         self.assertTrue(isinstance(welcome, WM.WAMPMessageWelcome))
         self.assertEqual(welcome.type, WAMPMessageType.WELCOME)
@@ -89,6 +89,7 @@ class TestWAMPMessage(unittest.TestCase):
                             'call_1', 'call_uri', 'arg', {'key': 'val2'})
         self.assertEqual(call1, call2)
         self.assertNotEqual(call1, call3)
+
 
 class TestWAMPMessageSubclasses(unittest.TestCase):
 
@@ -144,11 +145,11 @@ class TestWAMPMessageSubclasses(unittest.TestCase):
 
     def test_call(self):
         call1 = WAMPMessage(WAMPMessageType.CALL, 'call1', 'proc_uri',
-                            'arg1', ['arg2', 'arg3'], {'arg4':'value4'})
-        call2 = WM.WAMPMessageCall('call1', 'proc_uri',
-                            'arg1', ['arg2', 'arg3'], {'arg4':'value4'})
+                            'arg1', ['arg2', 'arg3'], {'arg4': 'value4'})
+        call2 = WM.WAMPMessageCall('call1', 'proc_uri', 'arg1',
+                                   ['arg2', 'arg3'], {'arg4': 'value4'})
         call3 = WAMPMessage.Call('call1', 'proc_uri',
-                            'arg1', ['arg2', 'arg3'], {'arg4':'value4'})
+                                 'arg1', ['arg2', 'arg3'], {'arg4': 'value4'})
         call4 = WAMPMessage.loads(('[2, "call1", "proc_uri",'
                                    '"arg1", ["arg2", "arg3"],'
                                    '{"arg4":"value4"}]'))
@@ -160,7 +161,7 @@ class TestWAMPMessageSubclasses(unittest.TestCase):
         list3 = call3.json
         list4 = call4.json
         self.assertEqual(list1, [WAMPMessageType.CALL, 'call1',  'proc_uri',
-                                 'arg1', ['arg2', 'arg3'], {'arg4':'value4'}])
+                                 'arg1', ['arg2', 'arg3'], {'arg4': 'value4'}])
         self.assertEqual(list1, list2)
         self.assertEqual(list2, list3)
         self.assertEqual(list3, list4)
@@ -232,7 +233,7 @@ class TestWAMPMessageSubclasses(unittest.TestCase):
                              'call1', 'uri', 'desc', {'key': 'value'})
         error2 = WM.WAMPMessageCallError('call1', 'uri', 'desc',
                                          {'key': 'value'})
-        error3 = WAMPMessage.CallError('call1', 'uri', 'desc', 
+        error3 = WAMPMessage.CallError('call1', 'uri', 'desc',
                                        {'key': 'value'})
         error4 = WAMPMessage.loads('[4, "call1", "uri", "desc", '
                                    '{"key": "value"}]')

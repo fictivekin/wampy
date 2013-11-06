@@ -7,16 +7,16 @@ class UppercaseAliasingMetaclass(UppercaseAliasingMixin, type):
 
 
 class WAMPMessageType(int):
-    
+
     __metaclass__ = UppercaseAliasingMetaclass
     _instances = dict()
     _value_range = range(9)
-    
+
     def __new__(cls, value):
         assert value in WAMPMessageType._value_range
         if value not in WAMPMessageType._instances:
             new = super(WAMPMessageType, cls).__new__(cls, value)
-            WAMPMessageType._instances[value] = new 
+            WAMPMessageType._instances[value] = new
         return WAMPMessageType._instances[value]
 
 
@@ -42,7 +42,7 @@ class WAMPMessageMetaclass(type):
                 assert cls == WAMPMessage, "cannot be called from a subclass"
                 return cls._sc[message_type]
             except KeyError as e:
-                raise AttributeError("%s object has no attribute %s" % 
+                raise AttributeError("%s object has no attribute %s" %
                                      cls.__name__, name)
 
 
