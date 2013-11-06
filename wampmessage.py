@@ -1,5 +1,5 @@
 import json
-from util import iterablate, UppercaseAliasingMixin
+from wamputil import iterablate, UppercaseAliasingMixin
 
 
 class UppercaseAliasingMetaclass(UppercaseAliasingMixin, type):
