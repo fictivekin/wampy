@@ -3,7 +3,7 @@ import unittest
 import objgraph
 import weakref
 from util import (none_or_equal, iterablate, check_signature,
-                  WeaklyBoundCallable)
+                  WeaklyBoundCallable, UppercaseAliasingMixin)
 
 
 class TestNoneOrEual(unittest.TestCase):
@@ -312,6 +312,34 @@ class TestWeaklyBoundCallable(unittest.TestCase):
         self.assertEqual(dictionary[wb_1_1], 'wb_1_1_c')
         self.assertEqual(dictionary[wb_1_1_b], 'wb_1_1_c')
         self.assertEqual(dictionary[wb_1_1_c], 'wb_1_1_c')
+
+
+class TestUppercaseAliasingMixin(unittest.TestCase):
+
+    def test_instance_aliasing(self):
+
+        class MyClass(UppercaseAliasingMixin, object):
+
+            def MY_METHOD(self):
+                pass
+
+        instance = MyClass()
+        self.assertEqual(instance.my_method, instance.MY_METHOD)
+
+    def test_class_aliasing(self):
+
+        class UppercaseAliasingMetaclass(UppercaseAliasingMixin, type):
+            pass
+
+        class MyClass(object):
+
+            __metaclass__ = UppercaseAliasingMetaclass
+
+            @classmethod
+            def MY_METHOD(cls):
+                pass
+
+        self.assertEqual(MyClass.my_method, MyClass.MY_METHOD)
 
 
 if __name__ == '__main__':

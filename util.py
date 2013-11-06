@@ -143,3 +143,15 @@ class WeaklyBoundCallable(object):
 
     def __hash__(self):
         return self._stored_hash
+
+
+class UppercaseAliasingMixin(object):
+
+    def __getattribute__(this, name):
+        class_type = object.__getattribute__(this, '__class__')
+        super_proxy = super(UppercaseAliasingMixin, this)
+        try:
+            return super_proxy.__getattribute__(name)
+        except AttributeError:
+            upper_name = name.upper()
+            return super_proxy.__getattribute__(upper_name)
