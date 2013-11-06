@@ -2,7 +2,6 @@ import unittest
 import gc
 from pubsub import PubSub
 from weakref import WeakValueDictionary
-import myclass
 
 
 log = dict()

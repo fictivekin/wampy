@@ -1,7 +1,7 @@
 from collections import namedtuple, defaultdict
 from weakref import WeakValueDictionary
-from util import (none_or_equal, iterablate, check_signature,
-                  WeaklyBoundCallable)
+from wamputil import (none_or_equal, iterablate, check_signature,
+                      WeaklyBoundCallable)
 
 
 _services = dict()
