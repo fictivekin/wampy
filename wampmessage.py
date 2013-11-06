@@ -1,68 +1,252 @@
-from json import dumps
-from collections import Iterable
-from util import iterablate
+import json
+from util import iterablate, UppercaseAliasingMixin
 
 
-class WAMPMessageType(object):
-    WELCOME = 0
-    PREFIX = 1
-    CALL = 2
-    CALLRESULT = 3
-    CALLERROR = 4
-    SUBSCRIBE = 5
-    UNSUBSCRIBE = 6
-    PUBLISH = 7
-    EVENT = 8
+class UppercaseAliasingMetaclass(UppercaseAliasingMixin, type):
+    pass
 
 
-def welcome(session_id, protocol_version=1, server_ident=None):
-    return dumps([WAMPMessageType.WELCOME, session_id,
-                  protocol_version, server_ident], default=str)
+class WAMPMessageType(int):
+    
+    __metaclass__ = UppercaseAliasingMetaclass
+    _instances = dict()
+    _value_range = range(9)
+    
+    def __new__(cls, value):
+        assert value in WAMPMessageType._value_range
+        if value not in WAMPMessageType._instances:
+            new = super(WAMPMessageType, cls).__new__(cls, value)
+            WAMPMessageType._instances[value] = new 
+        return WAMPMessageType._instances[value]
 
 
-def prefix(prefix, URI):
-    return dumps([WAMPMessageType.PREFIX, prefix, URI], default=str)
+WAMPMessageType.WELCOME = WAMPMessageType(0)
+WAMPMessageType.PREFIX = WAMPMessageType(1)
+WAMPMessageType.CALL = WAMPMessageType(2)
+WAMPMessageType.CALLRESULT = WAMPMessageType(3)
+WAMPMessageType.CALLERROR = WAMPMessageType(4)
+WAMPMessageType.SUBSCRIBE = WAMPMessageType(5)
+WAMPMessageType.UNSUBSCRIBE = WAMPMessageType(6)
+WAMPMessageType.PUBLISH = WAMPMessageType(7)
+WAMPMessageType.EVENT = WAMPMessageType(8)
 
 
-def call(call_id, proc_uri, *args):
-    return dumps([WAMPMessageType.CALL, call_id, proc_uri] + list(args),
-                 default=str)
+class WAMPMessageMetaclass(type):
+
+    def __getattribute__(cls, name):
+        try:
+            return type.__getattribute__(cls, name)
+        except AttributeError:
+            message_type = getattr(WAMPMessageType, name)
+            try:
+                assert cls == WAMPMessage, "cannot be called from a subclass"
+                return cls._sc[message_type]
+            except KeyError as e:
+                raise AttributeError("%s object has no attribute %s" % 
+                                     cls.__name__, name)
 
 
-def call_result(call_id, result):
-    return dumps([WAMPMessageType.CALLRESULT, call_id, result],
-                 default=str)
+class WAMPMessage(object):
+
+    __metaclass__ = WAMPMessageMetaclass
+    _sc = dict()
+
+    def __new__(cls, type=None, *args, **kwargs):
+        if cls == WAMPMessage:
+            assert type in cls._sc, "unrecognized message type"
+            return cls._sc[type](*args, **kwargs)
+        else:
+            return super(WAMPMessage, cls).__new__(cls)
+
+    @classmethod
+    def loads(cls, in_string):
+        assert cls == WAMPMessage, "cannot be called from a subclass"
+        in_object = json.loads(in_string)
+        return WAMPMessage(*in_object)
+
+    @property
+    def type(self):
+        return getattr(self, '_type', None)
+
+    @property
+    def json(self):
+        return [self.type] + self.wamp_args
+
+    def __hash__(self):
+        return int(self.type) if self.type is not None else -1
+
+    def __eq__(self, other):
+        return (isinstance(other, WAMPMessage) and
+                self.__hash__() == other.__hash__() and
+                self.json == other.json)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __str__(self):
+        return json.dumps(self.json, default=str)
 
 
-def call_error(call_id, error_uri, error_desc, error_details=None):
-    message = [WAMPMessageType.CALLERROR, call_id, error_uri, error_desc]
-    if error_details:
-        message.append(error_details)
-    return dumps(message, default=str)
+class WAMPMessageWelcome(WAMPMessage):
+
+    def __new__(cls, session_id, protocol_version=1, server_ident=1):
+        self = super(WAMPMessageWelcome, cls).__new__(WAMPMessageWelcome)
+        self._type = WAMPMessageType.WELCOME
+        self.session_id = session_id
+        self.protocol_version = protocol_version
+        self.server_ident = server_ident
+        return self
+
+    @property
+    def wamp_args(self):
+        return [self.session_id, self.protocol_version, self.server_ident]
+
+WAMPMessage._sc[WAMPMessageType.WELCOME] = WAMPMessageWelcome
 
 
-def subscribe(topic_uri):
-    return dumps([WAMPMessageType.SUBSCRIBE, topic_uri], default=str)
+class WAMPMessagePrefix(WAMPMessage):
+
+    def __new__(cls, prefix, uri):
+        self = super(WAMPMessagePrefix, cls).__new__(WAMPMessagePrefix)
+        self._type = WAMPMessageType.PREFIX
+        self.prefix = prefix
+        self.uri = uri
+        return self
+
+    @property
+    def wamp_args(self):
+        return [self.prefix, self.uri]
+
+WAMPMessage._sc[WAMPMessageType.PREFIX] = WAMPMessagePrefix
 
 
-def unsubscribe(topic_uri):
-    return dumps([WAMPMessageType.UNSUBSCRIBE, topic_uri], default=str)
+class WAMPMessageCall(WAMPMessage):
+
+    def __new__(cls, call_id, proc_uri, *args):
+        self = super(WAMPMessageCall, cls).__new__(WAMPMessageCall)
+        self._type = WAMPMessageType.CALL
+        self.call_id = call_id
+        self.proc_uri = proc_uri
+        self.args = list(args)
+        return self
+
+    @property
+    def wamp_args(self):
+        return [self.call_id, self.proc_uri] + self.args
+
+WAMPMessage._sc[WAMPMessageType.CALL] = WAMPMessageCall
 
 
-def publish(topic_uri, event, exclude=None, eligible=None):
-    message = [WAMPMessageType.PUBLISH, topic_uri, event]
-    if isinstance(exclude, bool):
-        assert eligible is None, "eligible list requires exclude *list*"
-        return dumps(message + ([exclude] if exclude else []))
-    else:
-        exclude = iterablate(exclude)
-        eligible = iterablate(eligible)
-    if len(exclude) > 0 or len(eligible) > 0:
-        message.append(exclude)
-    if len(eligible) > 0:
-        message.append(eligible)
-    return dumps(message, default=str)
+class WAMPMessageCallResult(WAMPMessage):
+
+    def __new__(cls, call_id, result):
+        self = (super(WAMPMessageCallResult, cls).
+                __new__(WAMPMessageCallResult))
+        self._type = WAMPMessageType.CALLRESULT
+        self.call_id = call_id
+        self.result = result
+        return self
+
+    @property
+    def wamp_args(self):
+        return [self.call_id, self.result]
+
+WAMPMessage._sc[WAMPMessageType.CALLRESULT] = WAMPMessageCallResult
 
 
-def event(topic_uri, event):
-    return dumps([WAMPMessageType.EVENT, topic_uri, event], default=str)
+class WAMPMessageCallError(WAMPMessage):
+
+    def __new__(cls, call_id, error_uri, error_desc, error_details=None):
+        self = (super(WAMPMessageCallError, cls).
+                __new__(WAMPMessageCallError))
+        self._type = WAMPMessageType.CALLERROR
+        self.call_id = call_id
+        self.error_uri = error_uri
+        self.error_desc = error_desc
+        self.error_details = error_details
+        return self
+
+    @property
+    def wamp_args(self):
+        return ([self.call_id, self.error_uri, self.error_desc] +
+                ([] if self.error_details is None else [self.error_details]))
+
+WAMPMessage._sc[WAMPMessageType.CALLERROR] = WAMPMessageCallError
+
+
+class WAMPMessageSubscribe(WAMPMessage):
+
+    def __new__(cls, topic_uri):
+        self = (super(WAMPMessageSubscribe, cls).
+                __new__(WAMPMessageSubscribe))
+        self._type = WAMPMessageType.SUBSCRIBE
+        self.topic_uri = topic_uri
+        return self
+
+    @property
+    def wamp_args(self):
+        return [self.topic_uri]
+
+WAMPMessage._sc[WAMPMessageType.SUBSCRIBE] = WAMPMessageSubscribe
+
+
+class WAMPMessageUnsubscribe(WAMPMessage):
+
+    def __new__(cls, topic_uri):
+        self = (super(WAMPMessageUnsubscribe, cls).
+                __new__(WAMPMessageUnsubscribe))
+        self._type = WAMPMessageType.UNSUBSCRIBE
+        self.topic_uri = topic_uri
+        return self
+
+    @property
+    def wamp_args(self):
+        return [self.topic_uri]
+
+WAMPMessage._sc[WAMPMessageType.UNSUBSCRIBE] = WAMPMessageUnsubscribe
+
+
+class WAMPMessagePublish(WAMPMessage):
+
+    def __new__(cls, topic_uri, event, exclude=None, eligible=None):
+        self = super(WAMPMessagePublish, cls).__new__(WAMPMessagePublish)
+        self._type = WAMPMessageType.PUBLISH
+        self.topic_uri = topic_uri
+        self.event = event
+        if isinstance(exclude, bool):
+            assert eligible is None, "eligible list requires exclude *list*"
+            self.exclude_me = True
+        else:
+            self.exclude = iterablate(exclude, wrapper_cls=list)
+            self.eligible = iterablate(eligible, wrapper_cls=list)
+        return self
+
+    @property
+    def wamp_args(self):
+        if hasattr(self, 'exclude_me') and self.exclude_me:
+            filters = [True]
+        elif len(self.eligible) > 0 or len(self.exclude) > 0:
+            filters = [self.exclude]
+            if len(self.eligible) > 0:
+                filters += [self.eligible]
+        else:
+            filters = []
+        return [self.topic_uri, self.event] + filters
+
+WAMPMessage._sc[WAMPMessageType.PUBLISH] = WAMPMessagePublish
+
+
+class WAMPMessageEvent(WAMPMessage):
+
+    def __new__(cls, topic_uri, event):
+        self = super(WAMPMessageEvent, cls).__new__(WAMPMessageEvent)
+        self._type = WAMPMessageType.EVENT
+        self.topic_uri = topic_uri
+        self.event = event
+        return self
+
+    @property
+    def wamp_args(self):
+        return [self.topic_uri, self.event]
+
+WAMPMessage._sc[WAMPMessageType.EVENT] = WAMPMessageEvent
