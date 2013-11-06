@@ -2,7 +2,7 @@ import unittest
 import gc
 from pubsub import PubSub
 from weakref import WeakValueDictionary
-
+import weakref
 
 log = dict()
 log['callbacks'] = list()
@@ -227,14 +227,16 @@ class TestPubSub(unittest.TestCase):
     def test_weak_subscriptions(self):
         service = PubSub('test_weak_subscriptions')
         sub = Subscriber('sub')
+        weaksub = weakref.ref(sub)
         service.subscribe(sub, sub.key, 'topic', sub.cb1)
         subscriptions = service.subscriptions()
         self.assertEqual(len(subscriptions), 1)
         self.assertIn('topic', subscriptions)
         self.assertIn((sub, sub.key, sub.cb1), subscriptions['topic'])
-        del sub
         del subscriptions
+        del sub
         gc.collect()
+        self.assertEqual(weaksub(), None)
         subscriptions = service.subscriptions()
         self.assertEqual(len(subscriptions), 0)
 
