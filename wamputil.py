@@ -150,7 +150,7 @@ class UppercaseAliasingMixin(object):
     """
     a mix-in that aliases attributes to UPPERCASE equivalents
 
-    E.g., assuming a class with method `MY_METHOD`, this mixin 
+    E.g., assuming a class with method `MY_METHOD`, this mixin
     aliases `instance.my_method`, `instance.mY_mEtHoD`, etc.
 
     If you want this to affect class methods, this mixin should
