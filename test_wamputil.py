@@ -2,8 +2,8 @@ import gc
 import unittest
 import objgraph
 import weakref
-from util import (none_or_equal, iterablate, check_signature,
-                  WeaklyBoundCallable, UppercaseAliasingMixin)
+from wamputil import (none_or_equal, iterablate, check_signature,
+                      WeaklyBoundCallable, UppercaseAliasingMixin)
 
 
 class TestNoneOrEual(unittest.TestCase):
