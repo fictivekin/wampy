@@ -13,6 +13,7 @@ def PubSub(service_name):
 
         """
         Provides publish-subscribe service between local instances
+        Compatible with (most) WAMP semantics
         """
 
         class _Subscription(object):
@@ -81,6 +82,15 @@ def PubSub(service_name):
                     del self._subscriptions[topic]
 
         def publish(self, topic, event, exclude=None, eligible=None):
+            """
+            exclude: subscriber key(s) that will not receive the event
+            eligible: only eligible subscriber key(s) will receive the event
+
+            NB: the 'exclude_me' WAMP form is not accepted, as this module
+            has no knowledge of 'me'.  If you want to exclude the publisher
+            from receiving the event, include the publisher's key in the
+            `exclude` parameter
+            """
             exclude = iterablate(exclude)
             eligible = iterablate(eligible)
             subscriptions = self._subscriptions[topic].keys()
