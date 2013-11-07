@@ -8,14 +8,25 @@ class TestWAMPMessageType(unittest.TestCase):
 
     def test_message_types(self):
         self.assertEqual(WAMPMessageType.WELCOME, 0)
+        self.assertTrue(isinstance(WAMPMessageType.WELCOME, WAMPMessageType))
         self.assertEqual(WAMPMessageType.PREFIX, 1)
+        self.assertTrue(isinstance(WAMPMessageType.PREFIX, WAMPMessageType))
         self.assertEqual(WAMPMessageType.CALL, 2)
+        self.assertTrue(isinstance(WAMPMessageType.CALL, WAMPMessageType))
         self.assertEqual(WAMPMessageType.CALLRESULT, 3)
+        self.assertTrue(isinstance(WAMPMessageType.CALLRESULT,
+                                   WAMPMessageType))
         self.assertEqual(WAMPMessageType.CALLERROR, 4)
+        self.assertTrue(isinstance(WAMPMessageType.CALLERROR, WAMPMessageType))
         self.assertEqual(WAMPMessageType.SUBSCRIBE, 5)
+        self.assertTrue(isinstance(WAMPMessageType.SUBSCRIBE, WAMPMessageType))
         self.assertEqual(WAMPMessageType.UNSUBSCRIBE, 6)
+        self.assertTrue(isinstance(WAMPMessageType.UNSUBSCRIBE,
+                                   WAMPMessageType))
         self.assertEqual(WAMPMessageType.PUBLISH, 7)
+        self.assertTrue(isinstance(WAMPMessageType.PUBLISH, WAMPMessageType))
         self.assertEqual(WAMPMessageType.EVENT, 8)
+        self.assertTrue(isinstance(WAMPMessageType.EVENT, WAMPMessageType))
 
     def test_case_insensitivity(self):
         self.assertEqual(WAMPMessageType.WELCOME, WAMPMessageType.welcome)
@@ -30,6 +41,17 @@ class TestWAMPMessageType(unittest.TestCase):
                          id(WAMPMessageType.cAlL))
         self.assertNotEqual(id(WAMPMessageType.WELCOME),
                             id(WAMPMessageType.CALL))
+
+    def test_name(self):
+        self.assertEqual(WAMPMessageType.welcome.name, "WELCOME")
+        self.assertEqual(WAMPMessageType.prefix.name, "PREFIX")
+        self.assertEqual(WAMPMessageType.call.name, "CALL")
+        self.assertEqual(WAMPMessageType.callResult.name, "CALLRESULT")
+        self.assertEqual(WAMPMessageType.callError.name, "CALLERROR")
+        self.assertEqual(WAMPMessageType.subscribe.name, "SUBSCRIBE")
+        self.assertEqual(WAMPMessageType.unsubscribe.name, "UNSUBSCRIBE")
+        self.assertEqual(WAMPMessageType.publish.name, "PUBLISH")
+        self.assertEqual(WAMPMessageType.event.name, "EVENT")
 
 
 class TestWAMPMessage(unittest.TestCase):

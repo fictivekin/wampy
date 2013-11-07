@@ -2,33 +2,48 @@ import json
 from wamputil import iterablate, UppercaseAliasingMixin
 
 
-class UppercaseAliasingMetaclass(UppercaseAliasingMixin, type):
+class AttributeFactoryMixin(object):
+
+    def __getattribute__(cls, name):
+        super_proxy = super(AttributeFactoryMixin, cls)
+        try:
+            return super_proxy.__getattribute__(name)
+        except AttributeError:
+            return cls.__new__(cls, name)
+
+
+class WAMPMessageTypeMetaclass(UppercaseAliasingMixin,
+                               AttributeFactoryMixin, 
+                               type):
     pass
 
 
 class WAMPMessageType(int):
 
-    __metaclass__ = UppercaseAliasingMetaclass
+    __metaclass__ = WAMPMessageTypeMetaclass
     _instances = dict()
-    _value_range = range(9)
+    _message_types = {
+        'WELCOME': 0,
+        'PREFIX': 1,
+        'CALL': 2,
+        'CALLRESULT': 3,
+        'CALLERROR': 4,
+        'SUBSCRIBE': 5,
+        'UNSUBSCRIBE': 6,
+        'PUBLISH': 7,
+        'EVENT': 8
+    }
 
-    def __new__(cls, value):
-        assert value in WAMPMessageType._value_range
-        if value not in WAMPMessageType._instances:
-            new = super(WAMPMessageType, cls).__new__(cls, value)
-            WAMPMessageType._instances[value] = new
-        return WAMPMessageType._instances[value]
-
-
-WAMPMessageType.WELCOME = WAMPMessageType(0)
-WAMPMessageType.PREFIX = WAMPMessageType(1)
-WAMPMessageType.CALL = WAMPMessageType(2)
-WAMPMessageType.CALLRESULT = WAMPMessageType(3)
-WAMPMessageType.CALLERROR = WAMPMessageType(4)
-WAMPMessageType.SUBSCRIBE = WAMPMessageType(5)
-WAMPMessageType.UNSUBSCRIBE = WAMPMessageType(6)
-WAMPMessageType.PUBLISH = WAMPMessageType(7)
-WAMPMessageType.EVENT = WAMPMessageType(8)
+    def __new__(cls, name):
+        if name not in cls._message_types:
+            raise AttributeError("'%s' object has no attribute '%s'" 
+                                 % (cls.__name__, name)) 
+        if name not in WAMPMessageType._instances:
+            new_instance = (super(WAMPMessageType, cls).
+                            __new__(cls, cls._message_types[name]))
+            new_instance.name = name
+            WAMPMessageType._instances[name] = new_instance
+        return WAMPMessageType._instances[name]
 
 
 class WAMPMessageMetaclass(type):
