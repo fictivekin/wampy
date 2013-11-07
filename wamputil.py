@@ -158,7 +158,6 @@ class UppercaseAliasingMixin(object):
     """
 
     def __getattribute__(this, name):
-        class_type = object.__getattribute__(this, '__class__')
         super_proxy = super(UppercaseAliasingMixin, this)
         try:
             return super_proxy.__getattribute__(name)
