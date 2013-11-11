@@ -13,7 +13,7 @@ class AttributeFactoryMixin(object):
 
 
 class WAMPMessageTypeMetaclass(UppercaseAliasingMixin,
-                               AttributeFactoryMixin, 
+                               AttributeFactoryMixin,
                                type):
     pass
 
@@ -36,8 +36,8 @@ class WAMPMessageType(int):
 
     def __new__(cls, name):
         if name not in cls._message_types:
-            raise AttributeError("'%s' object has no attribute '%s'" 
-                                 % (cls.__name__, name)) 
+            raise AttributeError("'%s' object has no attribute '%s'"
+                                 % (cls.__name__, name))
         if name not in WAMPMessageType._instances:
             new_instance = (super(WAMPMessageType, cls).
                             __new__(cls, cls._message_types[name]))

@@ -38,7 +38,8 @@ class PubSub(object):
         """
         if name not in cls._instances:
             cls._instances[name] = super(PubSub, cls).__new__(cls)
-            cls._instances[name]._subscriptions = defaultdict(WeakValueDictionary)
+            subs = defaultdict(WeakValueDictionary)
+            cls._instances[name]._subscriptions = subs
         return cls._instances[name]
 
     def subscribe(self, subscriber, key, topic, callback):
