@@ -292,7 +292,7 @@ class TestAsyncWAMPSession(unittest.TestCase):
         self.session.handle_wamp_message(WAMPMessage.call('c2', 'ss'),
                                          callback=self.callback)
         self.assertEqual(len(self.message_log), 0)
-        self.assertEqual(len(self.callback_log), 0)        
+        self.assertEqual(len(self.callback_log), 0)
         time.sleep(3)
         self.assertEqual(len(self.message_log), 1)
         self.assertEqual(self.message_log[0],
@@ -311,7 +311,7 @@ class TestAsyncWAMPSession(unittest.TestCase):
 
     def test_callback_implies_future(self):
         future = self.session.handle_wamp_message(WAMPMessage.call('c4', 'ss'),
-                                                  callback=lambda f:None)
+                                                  callback=lambda f: None)
         self.assertEqual(len(self.message_log), 0)
         result = future.result()
         self.assertEqual(len(self.message_log), 1)
@@ -331,6 +331,7 @@ class TestAsyncWAMPSession(unittest.TestCase):
         self.assertEqual(len(self.async_log), 6)
         self.assertEqual(self.async_log, ['async_a1', 'async_a2', 'async_a3',
                                           'async_b1', 'async_b2', 'async_b3'])
+
     def test_concurrent(self):
         f1 = self.session.handle_wamp_message(WAMPMessage.call('c6', 'aa'),
                                               as_future=True)
