@@ -25,6 +25,7 @@ class WAMPSession(object):
         if method:
             future = self._executor.submit(method, message)
             if hasattr(callback, '__call__'):
+                check_signature(callback, num_args=1)
                 future.add_done_callback(callback)
             if as_future or hasattr(callback, '__call__'):
                 return future
