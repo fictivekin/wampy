@@ -7,8 +7,6 @@ from pubsub import PubSub
 
 class WAMPSession(object):
 
-    _executor = concurrent.futures.ThreadPoolExecutor(max_workers=10)
-
     def __init__(self, pubsub=None, prefixes=None, procedures=None):
         self._session_id = uuid.uuid4()
         self.pubsub = pubsub or PubSub('WAMPSessions')
@@ -19,18 +17,11 @@ class WAMPSession(object):
     def session_id(self):
         return self._session_id
 
-    def handle_wamp_message(self, message, callback=None, as_future=False):
+    def handle_wamp_message(self, message):
         handler_name = "_handle_" + message.type.name
         method = getattr(self, handler_name)
         if method:
-            future = self._executor.submit(method, message)
-            if hasattr(callback, '__call__'):
-                check_signature(callback, num_args=1)
-                future.add_done_callback(callback)
-            if as_future or hasattr(callback, '__call__'):
-                return future
-            else:
-                return future.result()
+            method(message)
 
     # RPC Registration
     def register_procedure(self, uri, procedure):
