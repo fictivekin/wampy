@@ -3,7 +3,8 @@ import unittest
 import objgraph
 import weakref
 from wamputil import (none_or_equal, iterablate, check_signature,
-                      WeaklyBoundCallable, UppercaseAliasingMixin)
+                      WeaklyBoundCallable, UppercaseAliasingMixin,
+                      AttributeFactoryMixin)
 
 
 class TestNoneOrEual(unittest.TestCase):
@@ -328,18 +329,38 @@ class TestUppercaseAliasingMixin(unittest.TestCase):
 
     def test_class_aliasing(self):
 
-        class UppercaseAliasingMetaclass(UppercaseAliasingMixin, type):
+        class Metaclass(UppercaseAliasingMixin, type):
             pass
 
         class MyClass(object):
 
-            __metaclass__ = UppercaseAliasingMetaclass
+            __metaclass__ = Metaclass
 
             @classmethod
             def MY_METHOD(cls):
                 pass
 
         self.assertEqual(MyClass.my_method, MyClass.MY_METHOD)
+
+
+class TestAttributeFactoryMixin(unittest.TestCase):
+
+    def test_attribute_factory(self):
+
+        class Metaclass(AttributeFactoryMixin, type):
+            pass
+
+        class MyClass(object):
+
+            __metaclass__ = Metaclass
+
+            def __new__(cls, parameter):
+                obj = super(MyClass, cls).__new__(cls)
+                obj.parameter = parameter
+                return obj
+
+        instance = MyClass.foo
+        self.assertEqual(instance.parameter, 'foo')
 
 
 if __name__ == '__main__':

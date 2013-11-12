@@ -1,15 +1,5 @@
 import json
-from wamputil import iterablate, UppercaseAliasingMixin
-
-
-class AttributeFactoryMixin(object):
-
-    def __getattribute__(cls, name):
-        super_proxy = super(AttributeFactoryMixin, cls)
-        try:
-            return super_proxy.__getattribute__(name)
-        except AttributeError:
-            return cls.__new__(cls, name)
+from wamputil import iterablate, UppercaseAliasingMixin, AttributeFactoryMixin
 
 
 class WAMPMessageTypeMetaclass(UppercaseAliasingMixin,

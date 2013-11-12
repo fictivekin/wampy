@@ -164,3 +164,27 @@ class UppercaseAliasingMixin(object):
         except AttributeError:
             upper_name = name.upper()
             return super_proxy.__getattribute__(upper_name)
+
+
+class AttributeFactoryMixin(object):
+
+    """
+    a meta-class mix-in that auto-generates class instances
+
+    When an attribute is accessed as a class attribute, if the attribute
+    is not found via the standard attribute resolution mechanism, a new
+    instance of the class will be created, using the attribute name as
+    a parameter to the __new__ class method.
+
+    E.g, MyClass.foo will first try to find the 'foo' attribute
+    if MyClass and, failing that, will return MyClass.__new__('foo')
+
+    NB: this mixin should be applied to the metaclass
+    """
+
+    def __getattribute__(cls, name):
+        super_proxy = super(AttributeFactoryMixin, cls)
+        try:
+            return super_proxy.__getattribute__(name)
+        except AttributeError:
+            return cls.__new__(cls, name)
