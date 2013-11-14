@@ -8,7 +8,7 @@ from pubsub import PubSub
 class WAMPSession(object):
 
     def __init__(self, pubsub=None, prefixes=None, procedures=None):
-        self._session_id = uuid.uuid4()
+        self._session_id = str(uuid.uuid4())
         self.pubsub = pubsub or PubSub('WAMPSessions')
         self.prefixes = prefixes or dict()
         self.procedures = procedures or dict()

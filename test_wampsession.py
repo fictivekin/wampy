@@ -13,7 +13,7 @@ class TestWAMPSession(unittest.TestCase):
 
     def test_init(self):
         session = WAMPSession()
-        self.assertTrue(isinstance(session.session_id, uuid.UUID))
+        self.assertTrue(isinstance(session.session_id, basestring))
         self.assertEqual(id(session.pubsub), id(PubSub('WAMPSessions')))
 
     def test_registered_procedures(self):
