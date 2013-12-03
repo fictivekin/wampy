@@ -28,7 +28,7 @@ class WAMPSession(object):
         check_signature(procedure, min_args=0)
         self.procedures[uri] = WeaklyBoundCallable(procedure)
 
-    def proc_for_uri(self, uri):
+    def expand_uri(self, uri):
         try:
             prefix, iri = uri.split(':')
             uri = self.prefixes[prefix] + iri
@@ -36,7 +36,10 @@ class WAMPSession(object):
             raise Exception("unrecognized prefix: '%s'" % prefix)
         except ValueError:
             pass
-        return self.procedures[uri]
+        return uri
+        
+    def proc_for_uri(self, uri):
+        return self.procedures[self.expand_uri(uri)]
 
     # send_wamp_message
     @property
