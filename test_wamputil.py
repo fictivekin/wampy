@@ -1,6 +1,5 @@
 import gc
 import unittest
-import objgraph
 import weakref
 from wamputil import (none_or_equal, iterablate, check_signature,
                       WeaklyBoundCallable, UppercaseAliasingMixin,
