@@ -1,4 +1,3 @@
-import concurrent.futures
 import uuid
 from wamputil import check_signature, WeaklyBoundCallable
 from wampmessage import WAMPMessage

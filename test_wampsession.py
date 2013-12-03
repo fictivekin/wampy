@@ -1,5 +1,4 @@
 import unittest
-import uuid
 import gc
 import weakref
 import concurrent.futures
@@ -261,7 +260,7 @@ class TestAsyncWAMPSession(unittest.TestCase):
         return 'sync_fast'
 
     def sync_slow(self, *args):
-        time.sleep(2)
+        time.sleep(0.2)
         return 'sync_slow'
 
     def callback(self, future):
@@ -269,17 +268,17 @@ class TestAsyncWAMPSession(unittest.TestCase):
 
     def async_a(self, *args):
         self.async_log.append('async_a1')
-        time.sleep(1)
+        time.sleep(0.1)
         self.async_log.append('async_a2')
-        time.sleep(2)
+        time.sleep(0.2)
         self.async_log.append('async_a3')
         return 'async_a'
 
     def async_b(self, *args):
         self.async_log.append('async_b1')
-        time.sleep(2)
+        time.sleep(0.2)
         self.async_log.append('async_b2')
-        time.sleep(2)
+        time.sleep(0.2)
         self.async_log.append('async_b3')
         return 'async_b'
 

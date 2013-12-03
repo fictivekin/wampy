@@ -1,6 +1,6 @@
 from collections import Iterable
 from weakref import ref
-from inspect import getargspec, ismethod
+from inspect import getargspec
 
 
 def none_or_equal(a, b):
