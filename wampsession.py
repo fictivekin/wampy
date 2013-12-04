@@ -36,7 +36,7 @@ class WAMPSession(object):
         except ValueError:
             pass
         return uri
-        
+
     def proc_for_uri(self, uri):
         return self.procedures[self.expand_uri(uri)]
 

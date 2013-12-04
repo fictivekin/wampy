@@ -35,7 +35,7 @@ class WAMPMessageType(int):
                 type_id = cls._message_types.index(identifier)
                 name = identifier
             except ValueError:
-                raise AttributeError("Invalid %s: %s" % 
+                raise AttributeError("Invalid %s: %s" %
                                      (cls.__name__, identifier))
         if name not in WAMPMessageType._instances:
             new_instance = super(WAMPMessageType, cls).__new__(cls, type_id)
