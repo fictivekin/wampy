@@ -12,25 +12,33 @@ class WAMPMessageType(int):
 
     __metaclass__ = WAMPMessageTypeMetaclass
     _instances = dict()
-    _message_types = {
-        'WELCOME': 0,
-        'PREFIX': 1,
-        'CALL': 2,
-        'CALLRESULT': 3,
-        'CALLERROR': 4,
-        'SUBSCRIBE': 5,
-        'UNSUBSCRIBE': 6,
-        'PUBLISH': 7,
-        'EVENT': 8
-    }
+    _message_types = ['WELCOME',
+                      'PREFIX',
+                      'CALL',
+                      'CALLRESULT',
+                      'CALLERROR',
+                      'SUBSCRIBE',
+                      'UNSUBSCRIBE',
+                      'PUBLISH',
+                      'EVENT']
 
-    def __new__(cls, name):
-        if name not in cls._message_types:
-            raise AttributeError("'%s' object has no attribute '%s'"
-                                 % (cls.__name__, name))
+    def __new__(cls, identifier):
+        if isinstance(identifier, int):
+            try:
+                name = cls._message_types[identifier]
+                type_id = identifier
+            except IndexError:
+                raise AttributeError("Invalid %s: %d" %
+                                     (cls.__name__, identifier))
+        else:
+            try:
+                type_id = cls._message_types.index(identifier)
+                name = identifier
+            except ValueError:
+                raise AttributeError("Invalid %s: %s" % 
+                                     (cls.__name__, identifier))
         if name not in WAMPMessageType._instances:
-            new_instance = (super(WAMPMessageType, cls).
-                            __new__(cls, cls._message_types[name]))
+            new_instance = super(WAMPMessageType, cls).__new__(cls, type_id)
             new_instance.name = name
             WAMPMessageType._instances[name] = new_instance
         return WAMPMessageType._instances[name]
