@@ -99,6 +99,9 @@ class WAMPMessage(object):
     def __str__(self):
         return json.dumps(self.json, default=str)
 
+    def __getnewargs__(self):
+        return tuple(self.wamp_args)
+
 
 class WAMPMessageWelcome(WAMPMessage):
 
