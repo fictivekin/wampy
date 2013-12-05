@@ -23,7 +23,7 @@ class WAMPSession(object):
             args = [message]
             if message.type == WAMPMessageType.CALL and callback is not None:
                 check_signature(callback, num_args=1)
-                args.append(callback)
+                args.append(WeaklyBoundCallable(callback))
             method(*args)
 
     # RPC Registration
