@@ -1,6 +1,6 @@
 import uuid
 from wamputil import check_signature, WeaklyBoundCallable
-from wampmessage import WAMPMessage
+from wampmessage import WAMPMessage, WAMPMessageType
 from pubsub import PubSub
 
 
@@ -16,11 +16,15 @@ class WAMPSession(object):
     def session_id(self):
         return self._session_id
 
-    def handle_wamp_message(self, message):
+    def handle_wamp_message(self, message, callback=None):
         handler_name = "_handle_" + message.type.name
         method = getattr(self, handler_name)
         if method:
-            method(message)
+            args = [message]
+            if message.type == WAMPMessageType.CALL and callback is not None:
+                check_signature(callback, num_args=1)
+                args.append(callback)
+            method(*args)
 
     # RPC Registration
     def register_procedure(self, uri, procedure):
@@ -103,7 +107,7 @@ class WAMPSession(object):
     def _handle_PREFIX(self, message):
         self.prefixes[message.prefix] = message.uri
 
-    def _handle_CALL(self, message):
+    def _handle_CALL(self, message, callback=None):
         try:
             procedure = self.proc_for_uri(message.proc_uri)
             result = procedure(*(message.args))
@@ -114,7 +118,10 @@ class WAMPSession(object):
         except BaseException as e:
             response = WAMPMessage.callerror(message.call_id, 'error/uri',
                                              str(e))
-        self.send_wamp_message(response)
+        if callback is not None:
+            callback(response)
+        else:
+            self.send_wamp_message(response)
 
     def _handle_CALLRESULT(self, message):
         self.callresult_callback(message)

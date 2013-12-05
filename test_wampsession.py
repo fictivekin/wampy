@@ -117,6 +117,39 @@ class TestWAMPSession(unittest.TestCase):
                                                  'procedure': 'my_procedure1',
                                                  'argument': 'arg3'}))
 
+    def test_call_custom_send_callback(self):
+
+        message_log = []
+
+        def proc(arg=None, *args):
+            return ('proc', arg)
+
+        def send1(message):
+            message_log.append(('send1', message))
+
+        def send2(message):
+            message_log.append(('send2', message))
+
+        session = WAMPSession()
+        session.send_wamp_message = send1
+        session.register_procedure('proc', proc)
+        call_message1 = WAMPMessage.call('call1', 'proc', 'arg1')
+        call_message2 = WAMPMessage.call('call2', 'proc', 'arg2')
+        call_message3 = WAMPMessage.call('call3', 'proc', 'arg3')
+        session.handle_wamp_message(call_message1)
+        session.handle_wamp_message(call_message2, send2)
+        session.handle_wamp_message(call_message3)
+        self.assertEqual(len(message_log), 3)
+        self.assertEqual(message_log[0],
+                         ('send1',
+                          WAMPMessage.callresult('call1', ('proc', 'arg1'))))
+        self.assertEqual(message_log[1],
+                         ('send2',
+                          WAMPMessage.callresult('call2', ('proc', 'arg2'))))
+        self.assertEqual(message_log[2],
+                         ('send1',
+                          WAMPMessage.callresult('call3', ('proc', 'arg3'))))
+
     def test_call_exceptions(self):
 
         message_log = []
