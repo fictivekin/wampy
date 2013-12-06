@@ -5,6 +5,7 @@ import concurrent.futures
 import time
 from wampsession import WAMPSession
 from wampmessage import WAMPMessage, WAMPMessageType
+from wampexc import WAMPError
 from pubsub import PubSub
 
 
@@ -19,7 +20,10 @@ class TestWAMPSession(unittest.TestCase):
 
         class MyClass(object):
 
-            def my_bad(self):
+            def my_bad1(self, arg=None):
+                pass
+
+            def my_bad2(self, arg, *args):
                 pass
 
             def my_procedure(self, *args):
@@ -27,12 +31,14 @@ class TestWAMPSession(unittest.TestCase):
 
         session = WAMPSession()
         instance = MyClass()
-        self.assertRaises(Exception, session.register_procedure,
-                          'proc_uri', instance.my_bad)
-        self.assertRaises(Exception, session.proc_for_uri, 'proc_uri')
+        self.assertRaises(TypeError, session.register_procedure,
+                          'proc_uri', instance.my_bad1)
+        self.assertRaises(TypeError, session.register_procedure,
+                          'proc_uri', instance.my_bad2)
         session.register_procedure('proc_uri', instance.my_procedure)
         self.assertEqual(session.proc_for_uri('proc_uri').reverted(),
                          instance.my_procedure)
+        self.assertRaises(WAMPError, session.proc_for_uri, 'bad_uri')
         weak_instance = weakref.ref(instance)
         self.assertNotEqual(weak_instance(), None)
         del instance
@@ -45,7 +51,7 @@ class TestWAMPSession(unittest.TestCase):
         session.handle_wamp_message(WAMPMessage.welcome('new_id'))
         self.assertEqual(session.session_id, 'new_id')
 
-    def test_pefix(self):
+    def test_prefix(self):
 
         class MyClass(object):
 
@@ -61,8 +67,10 @@ class TestWAMPSession(unittest.TestCase):
                          session.proc_for_uri('long_uri#target'))
         self.assertEqual(session.proc_for_uri(':#target'),
                          session.proc_for_uri('long_uri#target'))
-        with self.assertRaises(Exception):
+        with self.assertRaises(WAMPError) as cm:
             session.proc_for_uri('not_a_prefix:#target')
+        self.assertIn('not_a_prefix', cm.exception.error_desc)
+        self.assertEqual(404, cm.exception.error_details['code'])
 
     def test_call(self):
 
@@ -152,40 +160,48 @@ class TestWAMPSession(unittest.TestCase):
 
     def test_call_exceptions(self):
 
-        message_log = []
+        def wamp_error(*args):
+            raise WAMPError('some_uri', 'expected error', {'key': 'value'})
 
-        def bad_function(*args):
+        def unknown(*args):
             raise Exception("spam & eggs")
 
-        def send_wamp_message(message):
-            message_log.append(message)
+        def log_wamp_message(log, message):
+            log.append(message)
 
+        wamp_log = []
         session = WAMPSession()
-        session.send_wamp_message = send_wamp_message
-        session.register_procedure('bad_function', bad_function)
-        prefix_message = WAMPMessage.prefix('prefix', 'bad_')
+        session.send_wamp_message = lambda m:log_wamp_message(wamp_log, m)
+        session.register_procedure('wamp_error', wamp_error)
+        session.register_procedure('unknown', unknown)
+        prefix_message = WAMPMessage.prefix('prefix', 'wamp_')
         session.handle_wamp_message(prefix_message)
-        call_message1 = WAMPMessage.call('call1', 'not:function')
-        call_message2 = WAMPMessage.call('call2', 'not_function')
-        call_message3 = WAMPMessage.call('call3', 'bad_function')
-        call_message4 = WAMPMessage.call('call4', 'prefix:function')
-        session.handle_wamp_message(call_message1)
-        session.handle_wamp_message(call_message2)
-        session.handle_wamp_message(call_message3)
-        session.handle_wamp_message(call_message4)
-        self.assertEqual(len(message_log), 4)
-        self.assertEqual(message_log[0].json[:3],
-                         [WAMPMessageType.CALLERROR, 'call1', 'error/uri'])
-        self.assertIn('unrecognized prefix', message_log[0].json[3])
-        self.assertEqual(message_log[1].json[:3],
-                         [WAMPMessageType.CALLERROR, 'call2', 'error/uri'])
-        self.assertIn('unrecognized procURI', message_log[1].json[3])
-        self.assertEqual(message_log[2].json[:3],
-                         [WAMPMessageType.CALLERROR, 'call3', 'error/uri'])
-        self.assertIn('spam & eggs', message_log[2].json[3])
-        self.assertEqual(message_log[3].json[:3],
-                         [WAMPMessageType.CALLERROR, 'call4', 'error/uri'])
-        self.assertIn('spam & eggs', message_log[3].json[3])
+
+        call_message = WAMPMessage.call('1', 'not:wamp_error')
+        session.handle_wamp_message(call_message)
+        response = wamp_log[-1]
+        self.assertEqual(response.type, WAMPMessageType.CALLERROR)
+        self.assertIn('prefix', response.error_desc)
+
+        call_message = WAMPMessage.call('2', 'not_wamp_error')
+        session.handle_wamp_message(call_message)
+        response = wamp_log[-1]
+        self.assertEqual(response.type, WAMPMessageType.CALLERROR)
+        self.assertIn('procURI', response.error_desc)
+
+        call_message = WAMPMessage.call('3', 'wamp_error')
+        session.handle_wamp_message(call_message)
+        response = wamp_log[-1]
+        self.assertEqual(response.type, WAMPMessageType.CALLERROR)
+        self.assertIn('expected error', response.error_desc)
+        self.assertEqual(response.error_details, {'key': 'value'})
+
+        call_message = WAMPMessage.call('4', 'unknown')
+        session.handle_wamp_message(call_message)
+        response = wamp_log[-1]
+        self.assertEqual(response.type, WAMPMessageType.CALLERROR)
+        self.assertIn('unknown', response.error_desc)
+        self.assertEqual(response.error_details, ("spam & eggs",))
 
     def test_call_result(self):
 

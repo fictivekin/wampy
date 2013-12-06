@@ -1,12 +1,15 @@
 import uuid
 from wamputil import check_signature, WeaklyBoundCallable
 from wampmessage import WAMPMessage, WAMPMessageType
+from wampexc import WAMPError
 from pubsub import PubSub
 
 
 class WAMPSession(object):
 
     cls_pubsub = PubSub('WAMPSessions')
+    bad_prefix_uri = "http://wamp.ws/spec/#prefix_message"
+    unrecognized_proc_uri = "http://wamp.ws/spec/#call_message"
 
     def __init__(self, pubsub=None, prefixes=None, procedures=None):
         self._session_id = str(uuid.uuid4())
@@ -38,13 +41,21 @@ class WAMPSession(object):
             prefix, iri = uri.split(':')
             uri = self.prefixes[prefix] + iri
         except KeyError:
-            raise Exception("unrecognized prefix: '%s'" % prefix)
+            raise WAMPError(self.bad_prefix_uri,
+                            "unrecognized prefix: '%s'" % prefix,
+                            {'code': 404})
         except ValueError:
             pass
         return uri
 
     def proc_for_uri(self, uri):
-        return self.procedures[self.expand_uri(uri)]
+        uri = self.expand_uri(uri)
+        try:
+            return self.procedures[uri]
+        except KeyError:
+            raise WAMPError(self.unrecognized_proc_uri,
+                            "unrecognized procURI: '%s'" % uri,
+                            {'code': 404})
 
     # send_wamp_message
     @property
@@ -114,12 +125,12 @@ class WAMPSession(object):
             procedure = self.proc_for_uri(message.proc_uri)
             result = procedure(*(message.args))
             response = WAMPMessage.callresult(message.call_id, result)
-        except KeyError as e:
-            response = WAMPMessage.callerror(message.call_id, 'error/uri',
-                                             'unrecognized procURI', e.args)
-        except BaseException as e:
-            response = WAMPMessage.callerror(message.call_id, 'error/uri',
-                                             str(e))
+        except WAMPError as e:
+            response = WAMPMessage.callerror(message.call_id, e.error_uri,
+                                             e.error_desc, e.error_details)
+        except Exception as e:
+            response = WAMPMessage.callerror(message.call_id, 'errors/unknown',
+                                             'unknown error', e.args)
         if callback is not None:
             callback(response)
         else:
