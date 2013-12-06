@@ -1,6 +1,6 @@
 from collections import Iterable
 from weakref import ref
-from inspect import getargspec
+from inspect import getargspec, getmembers
 
 
 def none_or_equal(a, b):
@@ -39,14 +39,14 @@ def iterablate(target, wrapper_cls=tuple, also_wrap=None):
     return target
 
 
-def check_signature(_callable, num_args=None, min_args=0, max_args=None):
+def check_signature(fn, num_args=None, min_args=0, max_args=None):
     """ Checks the call signature of a provided callable
 
     Ensures a priori that the callable can accept the specified
     number(s) of arguments
 
     Keyword arguments:
-    _callable: the callable that will be inspected
+    fn: the callable that will be inspected
 
     num_args: exact number of arguments to check function compatibility.
     If num_args is not None, min_args and max_args are ignored
@@ -58,25 +58,24 @@ def check_signature(_callable, num_args=None, min_args=0, max_args=None):
     if num_args is not None:
         min_args = num_args
         max_args = num_args
-    if max_args is not None:
-        assert(max_args >= min_args), \
-            "max_args(%d) < min_args(%d)" % (max_args, min_args)
+    if max_args is not None and max_args < min_args:
+        raise ValueError("max_args cannot be less than min_args(%d)")
 
-    argspec = getargspec(_callable)
-    call_arg_num = len(argspec.args) if argspec.args else 0
-    if hasattr(_callable, '__self__'):
-        call_arg_num -= 1
-    defaults_num = len(argspec.defaults) if argspec.defaults else 0
-    required = call_arg_num - defaults_num
-    if required >= 0:
-        assert min_args >= required, \
-            "min_args(%d) < required by callable(%d)" % (min_args, required)
+    argspec = getargspec(fn)
+    members = dict(getmembers(fn))
+    name = getattr(members, '__name__', fn.__class__.__name__)
+    accepts_n = len(argspec.args) if argspec.args else 0
+    if hasattr(fn, '__self__'):
+        accepts_n -= 1
+    defaults = len(argspec.defaults) if argspec.defaults else 0
+    required = accepts_n - defaults
+    if required >= 0 and min_args < required:
+        raise TypeError("%s requires at least %d free parameters" %
+                        (name, required))
     if not argspec.varargs:
-        assert max_args is not None, \
-            "max_args is not defined, callable must accept *args"
-        assert max_args <= call_arg_num, \
-            "max_args(%d) > accepted by callable(%d)" % (
-                max_args, call_arg_num)
+        if max_args is None or max_args > accepts_n:
+            raise TypeError("%s can't accept more than %d free parameters" %
+                            (name, accepts_n))
 
 
 class WeaklyBoundCallable(object):

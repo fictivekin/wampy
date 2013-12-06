@@ -46,9 +46,9 @@ class TestValidateUnboundCallableSignature(unittest.TestCase):
     def test_min_less_than_max(self):
         try:
             check_signature((lambda *args: None), min_args=0, max_args=2)
-        except AssertionError:
+        except (TypeError, ValueError):
             self.fail()
-        with self.assertRaises(Exception):
+        with self.assertRaises(ValueError):
             check_signature((lambda *args: None), min_args=3, max_args=2)
 
     def test_min_args_sufficient(self):
@@ -56,11 +56,11 @@ class TestValidateUnboundCallableSignature(unittest.TestCase):
         try:
             check_signature(c, min_args=2)
             check_signature(c, min_args=3)
-        except AssertionError:
+        except (TypeError, ValueError):
             self.fail()
-        with self.assertRaises(Exception):
+        with self.assertRaises(TypeError):
             check_signature(c, min_args=0)
-        with self.assertRaises(Exception):
+        with self.assertRaises(TypeError):
             check_signature(c, min_args=1)
 
     def test_max_args_fit(self):
@@ -70,41 +70,41 @@ class TestValidateUnboundCallableSignature(unittest.TestCase):
             check_signature(c, max_args=1)
             check_signature(c, max_args=2)
             check_signature(c, max_args=3)
-        except AssertionError:
+        except (TypeError, ValueError):
             self.fail()
-        with self.assertRaises(Exception):
+        with self.assertRaises(TypeError):
             check_signature(c, max_args=4)
-        with self.assertRaises(Exception):
+        with self.assertRaises(TypeError):
             check_signature(c)
 
     def test_num_args_values(self):
         try:
             check_signature((lambda x: None), num_args=1)
-        except AssertionError:
+        except (TypeError, ValueError):
             self.fail()
-        with self.assertRaises(Exception):
+        with self.assertRaises(TypeError):
             check_signature((lambda x: None), min_args=1)
-        with self.assertRaises(Exception):
+        with self.assertRaises(TypeError):
             check_signature((lambda x: None), max_args=1)
-        with self.assertRaises(Exception):
+        with self.assertRaises(TypeError):
             check_signature((lambda x, y: None), num_args=1)
-        with self.assertRaises(Exception):
+        with self.assertRaises(TypeError):
             check_signature((lambda: None), num_args=1)
 
     def test_min_default(self):
         try:
             check_signature((lambda: None), max_args=0)
-        except AssertionError:
+        except (TypeError, ValueError):
             self.fail()
-        with self.assertRaises(Exception):
+        with self.assertRaises(TypeError):
             check_signature((lambda x: None), max_args=1)
 
     def test_max_default(self):
         try:
             check_signature((lambda *args: None), min_args=0)
-        except AssertionError:
+        except (TypeError, ValueError):
             self.fail()
-        with self.assertRaises(Exception):
+        with self.assertRaises(TypeError):
             check_signature((lambda: None), min_args=0)
 
 
@@ -148,42 +148,42 @@ class TestValidateBoundCallableSignature(unittest.TestCase):
             check_signature(self.method_0, num_args=0)
             check_signature(self.method_1, num_args=1)
             check_signature(self.method_2, num_args=2)
-        except AssertionError:
+        except (TypeError, ValueError):
             self.fail()
-        with self.assertRaises(Exception):
-            check_signature(self, method_0, min_args=1)
-        with self.assertRaises(Exception):
-            check_signature(self, method_1, min_args=2)
-        with self.assertRaises(Exception):
-            check_signature(self, method_2, min_args=3)
+        with self.assertRaises(TypeError):
+            check_signature(self.method_0, min_args=1)
+        with self.assertRaises(TypeError):
+            check_signature(self.method_1, min_args=2)
+        with self.assertRaises(TypeError):
+            check_signature(self.method_2, min_args=3)
 
     def test_class_methods(self):
         try:
             check_signature(self.classmethod_0, num_args=0)
             check_signature(self.classmethod_1, num_args=1)
             check_signature(self.classmethod_2, num_args=2)
-        except AssertionError:
+        except (TypeError, ValueError):
             self.fail()
-        with self.assertRaises(Exception):
-            check_signature(self, classmethod_0, min_args=1)
-        with self.assertRaises(Exception):
-            check_signature(self, classmethod_1, min_args=2)
-        with self.assertRaises(Exception):
-            check_signature(self, classmethod_2, min_args=3)
+        with self.assertRaises(TypeError):
+            check_signature(self.classmethod_0, min_args=1)
+        with self.assertRaises(TypeError):
+            check_signature(self.classmethod_1, min_args=2)
+        with self.assertRaises(TypeError):
+            check_signature(self.classmethod_2, min_args=3)
 
     def test_static_methods(self):
         try:
             check_signature(self.staticmethod_0, num_args=0)
             check_signature(self.staticmethod_1, num_args=1)
             check_signature(self.staticmethod_2, num_args=2)
-        except AssertionError:
+        except (TypeError, ValueError):
             self.fail()
-        with self.assertRaises(Exception):
-            check_signature(self, staticmethod_0, min_args=1)
-        with self.assertRaises(Exception):
-            check_signature(self, staticmethod_1, min_args=2)
-        with self.assertRaises(Exception):
-            check_signature(self, staticmethod_2, min_args=3)
+        with self.assertRaises(TypeError):
+            check_signature(self.staticmethod_0, min_args=1)
+        with self.assertRaises(TypeError):
+            check_signature(self.staticmethod_1, min_args=2)
+        with self.assertRaises(TypeError):
+            check_signature(self.staticmethod_2, min_args=3)
 
 
 class TestWeaklyBoundCallable(unittest.TestCase):
