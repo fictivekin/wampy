@@ -171,7 +171,7 @@ class TestWAMPSession(unittest.TestCase):
 
         wamp_log = []
         session = WAMPSession()
-        session.send_wamp_message = lambda m:log_wamp_message(wamp_log, m)
+        session.send_wamp_message = lambda m: log_wamp_message(wamp_log, m)
         session.register_procedure('wamp_error', wamp_error)
         session.register_procedure('unknown', unknown)
         prefix_message = WAMPMessage.prefix('prefix', 'wamp_')

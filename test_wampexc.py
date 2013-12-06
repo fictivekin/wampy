@@ -1,6 +1,7 @@
 import unittest
 from wampexc import WAMPError
 
+
 class TestWAMPException(unittest.TestCase):
 
     def test_exceptions(self):
