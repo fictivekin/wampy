@@ -123,7 +123,7 @@ class WAMPSession(object):
 
     def _invoke_proc_for_message(self, message):
         procedure = self.proc_for_uri(message.proc_uri)
-        return  procedure(*(message.args))
+        return procedure(*(message.args))
 
     def _handle_CALL(self, message, callback=None):
         try:

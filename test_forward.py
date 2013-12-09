@@ -74,7 +74,6 @@ class TestWAMPSession(unittest.TestCase):
                                           {'proc': 'procedure_never',
                                            'args': message.args})
 
-
         self.session.register_procedure('procedure1')
         self.session.register_procedure('procedure2', procedure_never)
         prefix_message = WAMPMessage.prefix('proc', 'procedure')

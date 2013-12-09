@@ -1,5 +1,6 @@
 from wamputil import check_signature, WeaklyBoundCallable
 
+
 class WAMPCallForwardingMixin(object):
 
     @property
