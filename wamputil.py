@@ -1,6 +1,6 @@
 from collections import Iterable
 from weakref import ref
-from inspect import getargspec, getmembers
+from inspect import getargspec
 
 
 def none_or_equal(a, b):
@@ -62,20 +62,24 @@ def check_signature(fn, num_args=None, min_args=0, max_args=None):
         raise ValueError("max_args cannot be less than min_args(%d)")
 
     argspec = getargspec(fn)
-    members = dict(getmembers(fn))
-    name = getattr(members, '__name__', fn.__class__.__name__)
     accepts_n = len(argspec.args) if argspec.args else 0
     if hasattr(fn, '__self__'):
         accepts_n -= 1
     defaults = len(argspec.defaults) if argspec.defaults else 0
     required = accepts_n - defaults
     if required >= 0 and min_args < required:
-        raise TypeError("%s requires at least %d free parameters" %
-                        (name, required))
+        raise TypeError("%s requires at least %d free parameters"
+                        " but might be called with as few as %d" %
+                        (str(fn), required, min_args))
     if not argspec.varargs:
         if max_args is None or max_args > accepts_n:
-            raise TypeError("%s can't accept more than %d free parameters" %
-                            (name, accepts_n))
+            if max_args is None:
+                detail = "%d or more" % min_args
+            else:
+                detail = "%d" % max_args
+            raise TypeError("%s can't accept more than %d free parameters"
+                            " but might be called with %s" %
+                            (str(fn), accepts_n, detail))
 
 
 class WeaklyBoundCallable(object):
