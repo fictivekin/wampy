@@ -120,10 +120,13 @@ class WAMPSession(object):
     def _handle_PREFIX(self, message):
         self.prefixes[message.prefix] = message.uri
 
+    def _invoke_proc_for_message(self, message):
+        procedure = self.proc_for_uri(message.proc_uri)
+        return  procedure(*(message.args))
+
     def _handle_CALL(self, message, callback=None):
         try:
-            procedure = self.proc_for_uri(message.proc_uri)
-            result = procedure(*(message.args))
+            result = self._invoke_proc_for_message(message)
             response = WAMPMessage.callresult(message.call_id, result)
         except WAMPError as e:
             response = WAMPMessage.callerror(message.call_id, e.error_uri,
