@@ -32,7 +32,8 @@ class WAMPSession(object):
             method(*args)
 
     # RPC Registration
-    def register_procedure(self, uri, procedure):
+    def register_procedure(self, uri, procedure=None):
+        procedure = procedure or (lambda *args: None)
         check_signature(procedure, min_args=0)
         self.procedures[uri] = WeaklyBoundCallable(procedure)
 
