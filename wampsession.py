@@ -128,6 +128,8 @@ class WAMPSession(object):
     def _handle_CALL(self, message, callback=None):
         try:
             result = self._invoke_proc_for_message(message)
+            if result is None:
+                return
             response = WAMPMessage.callresult(message.call_id, result)
         except WAMPError as e:
             response = WAMPMessage.callerror(message.call_id, e.error_uri,
