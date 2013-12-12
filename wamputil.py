@@ -190,4 +190,5 @@ class AttributeFactoryMixin(object):
         try:
             return super_proxy.__getattribute__(name)
         except AttributeError:
-            return cls.__new__(cls, name)
+            setattr(cls, name, cls.__new__(cls, name))
+            return getattr(cls, name)

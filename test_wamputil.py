@@ -358,8 +358,13 @@ class TestAttributeFactoryMixin(unittest.TestCase):
                 obj.parameter = parameter
                 return obj
 
-        instance = MyClass.foo
-        self.assertEqual(instance.parameter, 'foo')
+        instance1 = MyClass.foo
+        self.assertEqual(instance1.parameter, 'foo')
+        instance2 = MyClass.bar
+        self.assertEqual(instance2.parameter, 'bar')
+        self.assertNotEqual(id(instance1), id(instance2))
+        instance3 = MyClass.foo
+        self.assertEqual(id(instance1), id(instance3))
 
 
 if __name__ == '__main__':
