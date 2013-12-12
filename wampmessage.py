@@ -11,7 +11,6 @@ class WAMPMessageTypeMetaclass(UppercaseAliasingMixin,
 class WAMPMessageType(int):
 
     __metaclass__ = WAMPMessageTypeMetaclass
-    _instances = dict()
     _message_types = ['WELCOME',
                       'PREFIX',
                       'CALL',
@@ -37,11 +36,9 @@ class WAMPMessageType(int):
             except ValueError:
                 raise AttributeError("Invalid %s: %s" %
                                      (cls.__name__, identifier))
-        if name not in WAMPMessageType._instances:
-            new_instance = super(WAMPMessageType, cls).__new__(cls, type_id)
-            new_instance.name = name
-            WAMPMessageType._instances[name] = new_instance
-        return WAMPMessageType._instances[name]
+        new_instance = super(WAMPMessageType, cls).__new__(cls, type_id)
+        new_instance.name = name
+        return new_instance
 
 
 class WAMPMessageMetaclass(type):
