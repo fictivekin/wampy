@@ -20,6 +20,7 @@ class WAMPMessageType(int):
                       'UNSUBSCRIBE',
                       'PUBLISH',
                       'EVENT']
+    _instances = dict()
 
     def __new__(cls, identifier):
         if isinstance(identifier, int):
@@ -36,9 +37,11 @@ class WAMPMessageType(int):
             except ValueError:
                 raise AttributeError("Invalid %s: %s" %
                                      (cls.__name__, identifier))
-        new_instance = super(WAMPMessageType, cls).__new__(cls, type_id)
-        new_instance.name = name
-        return new_instance
+        if type_id not in cls._instances:
+            new_instance = super(WAMPMessageType, cls).__new__(cls, type_id)
+            new_instance.name = name
+            cls._instances[type_id] = new_instance
+        return cls._instances[type_id]
 
 
 class WAMPMessageMetaclass(type):

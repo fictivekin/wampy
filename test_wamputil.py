@@ -365,6 +365,8 @@ class TestAttributeFactoryMixin(unittest.TestCase):
         self.assertNotEqual(id(instance1), id(instance2))
         instance3 = MyClass.foo
         self.assertEqual(id(instance1), id(instance3))
+        instance4 = MyClass('foo')
+        self.assertNotEqual(id(instance1), id(instance4))
 
 
 if __name__ == '__main__':
