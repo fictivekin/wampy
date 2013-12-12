@@ -37,8 +37,8 @@ class TestWAMPMessageType(unittest.TestCase):
     def test_single_instances(self):
         self.assertEqual(id(WAMPMessageType.WELCOME),
                          id(WAMPMessageType.welcome))
-        self.assertEqual(id(WAMPMessageType.WELCOME),
-                         id(WAMPMessageType('WELCOME')))
+        self.assertNotEqual(id(WAMPMessageType.WELCOME),
+                            id(WAMPMessageType('WELCOME')))
         self.assertEqual(id(WAMPMessageType.CaLl),
                          id(WAMPMessageType.cAlL))
         self.assertNotEqual(id(WAMPMessageType.WELCOME),
