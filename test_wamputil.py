@@ -41,7 +41,7 @@ class TestIterablate(unittest.TestCase):
         self.assertEqual(iterablate(('foo', 'bar')), ('foo', 'bar'))
 
 
-class TestValidateUnboundCallableSignature(unittest.TestCase):
+class TestCheckUnboundCallableSignature(unittest.TestCase):
 
     def test_min_less_than_max(self):
         try:
@@ -108,7 +108,7 @@ class TestValidateUnboundCallableSignature(unittest.TestCase):
             check_signature((lambda: None), min_args=0)
 
 
-class TestValidateBoundCallableSignature(unittest.TestCase):
+class TestCheckBoundCallableSignature(unittest.TestCase):
 
     def method_0(self):
         pass
@@ -184,6 +184,47 @@ class TestValidateBoundCallableSignature(unittest.TestCase):
             check_signature(self.staticmethod_1, min_args=2)
         with self.assertRaises(TypeError):
             check_signature(self.staticmethod_2, min_args=3)
+
+
+class AlwaysOne(object):
+
+    def __call__(self, arg):
+        pass
+
+class ThreeToFive(object):
+
+    def __call__(self, arg1, arg2, arg3, arg4=None, arg5=None):
+        pass
+
+class TestCheckCallableClassSignature(unittest.TestCase):
+
+    def test_callable_objects(self):
+        always_one = AlwaysOne()
+        always_one('arg')
+        with self.assertRaises(TypeError):
+            check_signature(always_one)
+        with self.assertRaises(TypeError):
+            check_signature(always_one, min_args=2)
+        with self.assertRaises(TypeError):
+            check_signature(always_one, min_args=1, max_args=2)
+        try:
+            check_signature(always_one, num_args=1)
+        except (TypeError, ValueError, AttributeError) as e:
+            self.fail(e)
+
+        three_to_five = ThreeToFive()
+        with self.assertRaises(TypeError):
+            check_signature(three_to_five)
+        with self.assertRaises(TypeError):
+            check_signature(three_to_five, min_args=2)
+        with self.assertRaises(TypeError):
+            check_signature(three_to_five, min_args=3, max_args=6)
+        try:
+            check_signature(three_to_five, num_args=3)
+            check_signature(three_to_five, num_args=4)
+            check_signature(three_to_five, num_args=5)
+        except (TypeError, ValueError, AttributeError) as e:
+            self.fail(e)
 
 
 class TestWeaklyBoundCallable(unittest.TestCase):

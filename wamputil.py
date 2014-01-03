@@ -61,9 +61,14 @@ def check_signature(fn, num_args=None, min_args=0, max_args=None):
     if max_args is not None and max_args < min_args:
         raise ValueError("max_args cannot be less than min_args(%d)")
 
-    argspec = getargspec(fn)
+    try:
+        argspec = getargspec(fn.__call__)
+        implied_self = True
+    except (TypeError, AttributeError):
+        argspec = getargspec(fn)
+        implied_self = False
     accepts_n = len(argspec.args) if argspec.args else 0
-    if hasattr(fn, '__self__'):
+    if implied_self or (getattr(fn, '__self__', None) is not None):
         accepts_n -= 1
     defaults = len(argspec.defaults) if argspec.defaults else 0
     required = accepts_n - defaults
