@@ -191,10 +191,12 @@ class AlwaysOne(object):
     def __call__(self, arg):
         pass
 
+
 class ThreeToFive(object):
 
     def __call__(self, arg1, arg2, arg3, arg4=None, arg5=None):
         pass
+
 
 class TestCheckCallableClassSignature(unittest.TestCase):
 
