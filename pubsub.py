@@ -97,9 +97,11 @@ class PubSub(object):
         from receiving the event, include the publisher's key in the
         `exclude` parameter
         """
+        print "wampy.pubsub.publish(%s, [event], %s, %s)" % (topic, exclude, eligible)
         exclude = iterablate(exclude)
         eligible = iterablate(eligible)
         subscriptions = self._subscriptions[topic].keys()
+        print "wampy.pubsub.publish subscriptions: %s" % subscriptions
         subscriptions = [subscription for subscription in subscriptions
                          if subscription.key not in exclude]
         if len(eligible) > 0:
