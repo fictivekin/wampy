@@ -106,4 +106,8 @@ class PubSub(object):
             subscriptions = [subscription for subscription in subscriptions
                              if subscription.key in eligible]
         for subscription in subscriptions:
-            subscription.callback(topic, event)
+            try:
+                subscription.callback(topic, event)
+            except Exception as e:
+                import traceback
+                traceback.print_exc(e)
