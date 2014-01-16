@@ -106,4 +106,5 @@ class PubSub(object):
             subscriptions = [subscription for subscription in subscriptions
                              if subscription.key in eligible]
         for subscription in subscriptions:
+            print "wampy.pubsub.publishing(%s)" % topic
             subscription.callback(topic, event)
