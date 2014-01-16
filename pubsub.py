@@ -102,15 +102,25 @@ class PubSub(object):
         eligible = iterablate(eligible)
         subscriptions = self._subscriptions[topic].keys()
         print "wampy.pubsub.publish subscriptions: %s" % subscriptions
+        try:
+            v = self._subscriptions[topic].values()
+            print "\n".join([str(val) for val in v])
+            import objgraph
+            import re
+            objgraph.show_backrefs(
+                v, max_depth=5, too_many=100,
+                filename=('%s.png'% re.sub('[^a-zA-Z0-9]', '', topic)))
+        except Exception as e:
+            print e
         subscriptions = [subscription for subscription in subscriptions
                          if subscription.key not in exclude]
         if len(eligible) > 0:
             subscriptions = [subscription for subscription in subscriptions
                              if subscription.key in eligible]
-        try:
-            for subscription in subscriptions:
-                print "wampy.pubsub.publishing(%s)" % topic
+        for subscription in subscriptions:
+            print "wampy.pubsub.publishing(%s)" % topic
+            try:
                 subscription.callback(topic, event)
-        except Exception as e:
-            import traceback
-            traceback.print_exc(e)
+            except Exception as e:
+                import traceback
+                traceback.print_exc(e)
