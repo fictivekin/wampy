@@ -1,6 +1,7 @@
 from collections import Iterable
 from weakref import ref
 from inspect import getargspec
+import re
 
 
 def none_or_equal(a, b):
@@ -153,27 +154,6 @@ class WeaklyBoundCallable(object):
         return self._stored_hash
 
 
-class UppercaseAliasingMixin(object):
-
-    """
-    a mix-in that aliases attributes to UPPERCASE equivalents
-
-    E.g., assuming a class with method `MY_METHOD`, this mixin
-    aliases `instance.my_method`, `instance.mY_mEtHoD`, etc.
-
-    If you want this to affect class methods, this mixin should
-    be added to the relevant metaclass
-    """
-
-    def __getattribute__(this, name):
-        super_proxy = super(UppercaseAliasingMixin, this)
-        try:
-            return super_proxy.__getattribute__(name)
-        except AttributeError:
-            upper_name = name.upper()
-            return super_proxy.__getattribute__(upper_name)
-
-
 class AttributeFactoryMixin(object):
 
     """
@@ -185,15 +165,76 @@ class AttributeFactoryMixin(object):
     a parameter to the __new__ class method.
 
     E.g, MyClass.foo will first try to find the 'foo' attribute
-    if MyClass and, failing that, will return MyClass.__new__('foo')
+    if MyClass and, failing that, will use the value of
+    MyClass.__new__('foo') (and store that value for further accesses
 
     NB: this mixin should be applied to the metaclass
     """
 
-    def __getattribute__(cls, name):
-        super_proxy = super(AttributeFactoryMixin, cls)
+    _attr_re = re.compile("has no attribute '(.*)'$")
+
+    @staticmethod
+    def _get_or_memoize(cls, name, value=None, new=None):
+        get = super(AttributeFactoryMixin, cls).__getattribute__
         try:
-            return super_proxy.__getattribute__(name)
-        except AttributeError:
-            setattr(cls, name, cls.__new__(cls, name))
-            return getattr(cls, name)
+            return get(name)
+        except AttributeError as e:
+            match = AttributeFactoryMixin._attr_re.search(e.message)
+            new_name = name if match is None else match.group(1)
+            new_value = value or new_name
+            new = new or get('__new__')
+            setattr(cls, new_name, new(cls, new_value))
+            return get(name)
+
+    def __getattribute__(cls, name):
+        return AttributeFactoryMixin._get_or_memoize(cls, name)
+
+
+class _EnumishMixin(object):
+
+    """
+    a mixin for creating enum-ish classes
+
+    Classes with this mixin can be instantiated by int or str,
+    where the parameters are constrained to be in the _values list,
+    i.e., an int must be less than len(cls._values), and a str must
+    be in cls.values
+    """
+
+    class EnumishMetaclass(AttributeFactoryMixin, type):
+        pass
+
+    __metaclass__ = EnumishMetaclass
+    _values = NotImplemented
+    _basetype = NotImplemented
+
+    def __new__(cls, value):
+        if isinstance(value, int):
+            if value >= len(cls._values):
+                raise AttributeError("%s: %d is not a valid value" %
+                                     (cls.__name__, value))
+            values = {int: value, str: cls._values[value]}
+        elif isinstance(value, basestring):
+            if value not in cls._values:
+                raise AttributeError("%s: '%s' is not a valid value" %
+                                     (cls.__name__, value))
+            values = {int: cls._values.index(value), str: value}
+        else:
+            raise TypeError("%s: argument must be <int> or <str>" %
+                            cls.__name__)
+        return cls.__metaclass__._get_or_memoize(
+            cls, values[str], values[cls._basetype], cls._basetype.__new__)
+
+
+class EnumishStr(_EnumishMixin, str):
+
+    """ an enumish class where each instance is a str """
+
+    _basetype = str
+
+
+class EnumishInt(_EnumishMixin, int):
+
+    """ an enumish class where each instance is an int """
+
+    _basetype = int

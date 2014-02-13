@@ -1,9 +1,11 @@
 import gc
 import unittest
 import weakref
+import inspect
+
 from wamputil import (none_or_equal, iterablate, check_signature,
-                      WeaklyBoundCallable, UppercaseAliasingMixin,
-                      AttributeFactoryMixin)
+                      WeaklyBoundCallable, AttributeFactoryMixin,
+                      _EnumishMixin, EnumishStr, EnumishInt)
 
 
 class TestNoneOrEual(unittest.TestCase):
@@ -357,59 +359,93 @@ class TestWeaklyBoundCallable(unittest.TestCase):
         self.assertEqual(dictionary[wb_1_1_c], 'wb_1_1_c')
 
 
-class TestUppercaseAliasingMixin(unittest.TestCase):
-
-    def test_instance_aliasing(self):
-
-        class MyClass(UppercaseAliasingMixin, object):
-
-            def MY_METHOD(self):
-                pass
-
-        instance = MyClass()
-        self.assertEqual(instance.my_method, instance.MY_METHOD)
-
-    def test_class_aliasing(self):
-
-        class Metaclass(UppercaseAliasingMixin, type):
-            pass
-
-        class MyClass(object):
-
-            __metaclass__ = Metaclass
-
-            @classmethod
-            def MY_METHOD(cls):
-                pass
-
-        self.assertEqual(MyClass.my_method, MyClass.MY_METHOD)
-
-
 class TestAttributeFactoryMixin(unittest.TestCase):
 
     def test_attribute_factory(self):
 
-        class Metaclass(AttributeFactoryMixin, type):
-            pass
+        class BaseMeta(type):
+
+            def __getattribute__(cls, name):
+                name = ('' if name[0] == '_' else 'b') + name
+                return super(BaseMeta, cls).__getattribute__(name)
+
+        class MidMeta(AttributeFactoryMixin, BaseMeta):
+
+            def __getattribute__(cls, name):
+                name = ('' if name[0] == '_' else 'm') + name
+                return super(MidMeta, cls).__getattribute__(name)
+
+        class FinMeta(MidMeta):
+
+            def __getattribute__(cls, name):
+                name = ('' if name[0] == '_' else 'f') + name
+                return super(FinMeta, cls).__getattribute__(name)
+
+        instances = {'count': 0}
 
         class MyClass(object):
 
-            __metaclass__ = Metaclass
+            __metaclass__ = FinMeta
 
-            def __new__(cls, parameter):
+            def __new__(cls, name):
+                instances['count'] += 1
                 obj = super(MyClass, cls).__new__(cls)
-                obj.parameter = parameter
+                obj.value = name
                 return obj
 
-        instance1 = MyClass.foo
-        self.assertEqual(instance1.parameter, 'foo')
-        instance2 = MyClass.bar
-        self.assertEqual(instance2.parameter, 'bar')
-        self.assertNotEqual(id(instance1), id(instance2))
-        instance3 = MyClass.foo
-        self.assertEqual(id(instance1), id(instance3))
-        instance4 = MyClass('foo')
-        self.assertNotEqual(id(instance1), id(instance4))
+        foo = MyClass.foo
+        self.assertEqual(instances['count'], 1)
+        self.assertEqual(foo.value, "bmffoo")
+        self.assertTrue(isinstance(foo, MyClass))
+        self.assertIn('bmffoo', dir(MyClass))
+        self.assertNotIn('foo', dir(MyClass))
+
+        bar = MyClass.bar
+        self.assertNotEqual(id(bar), id(foo))
+        self.assertEqual(instances['count'], 2)
+        self.assertEqual(bar.value, "bmfbar")
+        self.assertTrue(isinstance(bar, MyClass))
+        self.assertIn('bmfbar', dir(MyClass))
+        self.assertNotIn('bar', dir(MyClass))
+
+        new_foo = MyClass.foo
+        self.assertEqual(id(new_foo), id(foo))
+        self.assertEqual(instances['count'], 2)
+        self.assertEqual(new_foo.value, "bmffoo")
+        self.assertTrue(isinstance(new_foo, MyClass))
+        self.assertIn('bmffoo', dir(MyClass))
+        self.assertNotIn('new_foo', dir(MyClass))
+
+
+class TestEnumishMixins(unittest.TestCase):
+
+    def test_enumish_str_mixin(self):
+
+        instances = {'count': 0}
+
+        class MyStrEnum(EnumishStr):
+            _values = ["ADAM", "EVE", "CAIN", "ABEL"]
+            newcount = 0
+
+        adam = MyStrEnum.ADAM
+        self.assertEqual(adam, "ADAM")
+        self.assertTrue(isinstance(adam, MyStrEnum))
+        self.assertIn('ADAM', dir(MyStrEnum))
+
+        eve = MyStrEnum("EVE")
+        self.assertEqual(eve, "EVE")
+        self.assertTrue(isinstance(eve, MyStrEnum))
+        self.assertIn('EVE', dir(MyStrEnum))
+
+        cain = MyStrEnum(2)
+        self.assertEqual(cain, "CAIN")
+        self.assertTrue(isinstance(cain, MyStrEnum))
+        self.assertIn('CAIN', dir(MyStrEnum))
+
+        new_adam = MyStrEnum("ADAM")
+        self.assertEqual(id(new_adam), id(adam))
+        new_adam = MyStrEnum(0)
+        self.assertEqual(id(new_adam), id(adam))
 
 
 if __name__ == '__main__':
