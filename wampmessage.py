@@ -1,44 +1,18 @@
 import json
-from wamputil import iterablate, UppercaseAliasingMixin, AttributeFactoryMixin
+from wamputil import iterablate, EnumishInt
 
 
-class WAMPMessageTypeMetaclass(UppercaseAliasingMixin,
-                               AttributeFactoryMixin,
-                               type):
-    pass
+class WAMPMessageType(EnumishInt):
 
-
-class WAMPMessageType(int):
-
-    __metaclass__ = WAMPMessageTypeMetaclass
-    _message_types = ['WELCOME',
-                      'PREFIX',
-                      'CALL',
-                      'CALLRESULT',
-                      'CALLERROR',
-                      'SUBSCRIBE',
-                      'UNSUBSCRIBE',
-                      'PUBLISH',
-                      'EVENT']
-
-    def __new__(cls, identifier):
-        if isinstance(identifier, int):
-            try:
-                name = cls._message_types[identifier]
-                type_id = identifier
-            except IndexError:
-                raise AttributeError("Invalid %s: %d" %
-                                     (cls.__name__, identifier))
-        else:
-            try:
-                type_id = cls._message_types.index(identifier)
-                name = identifier
-            except ValueError:
-                raise AttributeError("Invalid %s: %s" %
-                                     (cls.__name__, identifier))
-        new_instance = super(WAMPMessageType, cls).__new__(cls, type_id)
-        new_instance.name = name
-        return new_instance
+    _values = ['WELCOME',
+               'PREFIX',
+               'CALL',
+               'CALLRESULT',
+               'CALLERROR',
+               'SUBSCRIBE',
+               'UNSUBSCRIBE',
+               'PUBLISH',
+               'EVENT']
 
 
 class WAMPMessageMetaclass(type):
