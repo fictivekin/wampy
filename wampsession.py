@@ -22,7 +22,7 @@ class WAMPSession(object):
         return self._session_id
 
     def handle_wamp_message(self, message, callback=None):
-        handler_name = "_handle_" + message.type.name
+        handler_name = "_handle_" + message.type.str
         method = getattr(self, handler_name)
         if method:
             args = [message]
@@ -130,13 +130,13 @@ class WAMPSession(object):
             result = self._invoke_proc_for_message(message)
             if result is None:
                 return
-            response = WAMPMessage.callresult(message.call_id, result)
+            response = WAMPMessage.CALLRESULT(message.call_id, result)
         except WAMPError as e:
-            response = WAMPMessage.callerror(message.call_id, e.error_uri,
+            response = WAMPMessage.CALLERROR(message.call_id, e.error_uri,
                                              e.error_desc, e.error_details)
         except Exception as e:
-            response = WAMPMessage.callerror(message.call_id, 'errors/unknown',
-                                             'unknown error', e.args)
+            response = WAMPMessage.CALLERROR(
+                message.call_id, 'errors/unknown', 'unknown error', e.args)
         if callback is not None:
             callback(response)
         else:
@@ -150,7 +150,7 @@ class WAMPSession(object):
 
     # Pub-Sub
     def _pubsub_callback(self, topic, event):
-        self.send_wamp_message(WAMPMessage.event(topic, event))
+        self.send_wamp_message(WAMPMessage.EVENT(topic, event))
 
     def _handle_SUBSCRIBE(self, message):
         self.pubsub.subscribe(self, self.session_id, message.topic_uri,
