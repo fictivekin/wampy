@@ -181,7 +181,7 @@ class AttributeFactoryMixin(object):
         except AttributeError as e:
             match = AttributeFactoryMixin._attr_re.search(e.message)
             new_name = name if match is None else match.group(1)
-            new_value = value or new_name
+            new_value = new_name if value is None else value
             new = new or get('__new__')
             setattr(cls, new_name, new(cls, new_value))
             return get(name)
@@ -222,8 +222,12 @@ class _EnumishMixin(object):
         else:
             raise TypeError("%s: argument must be <int> or <str>" %
                             cls.__name__)
-        return cls.__metaclass__._get_or_memoize(
-            cls, values[str], values[cls._basetype], cls._basetype.__new__)
+        new = cls.__metaclass__._get_or_memoize(cls, values[str],
+                                                values[cls._basetype],
+                                                cls._basetype.__new__)
+        new.int = values[int]
+        new.str = values[str]
+        return new
 
 
 class EnumishStr(_EnumishMixin, str):

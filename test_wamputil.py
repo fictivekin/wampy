@@ -429,22 +429,62 @@ class TestEnumishMixins(unittest.TestCase):
 
         adam = MyStrEnum.ADAM
         self.assertEqual(adam, "ADAM")
+        self.assertEqual(adam.str, "ADAM")
+        self.assertEqual(adam.int, 0)
         self.assertTrue(isinstance(adam, MyStrEnum))
         self.assertIn('ADAM', dir(MyStrEnum))
 
         eve = MyStrEnum("EVE")
         self.assertEqual(eve, "EVE")
+        self.assertEqual(eve.str, "EVE")
+        self.assertEqual(eve.int, 1)
         self.assertTrue(isinstance(eve, MyStrEnum))
         self.assertIn('EVE', dir(MyStrEnum))
 
         cain = MyStrEnum(2)
         self.assertEqual(cain, "CAIN")
+        self.assertEqual(cain.str, "CAIN")
+        self.assertEqual(cain.int, 2)
         self.assertTrue(isinstance(cain, MyStrEnum))
         self.assertIn('CAIN', dir(MyStrEnum))
 
         new_adam = MyStrEnum("ADAM")
         self.assertEqual(id(new_adam), id(adam))
         new_adam = MyStrEnum(0)
+        self.assertEqual(id(new_adam), id(adam))
+
+    def test_enumish_int_mixin(self):
+
+        instances = {'count': 0}
+
+        class MyIntEnum(EnumishInt):
+            _values = ["ADAM", "EVE", "CAIN", "ABEL"]
+            newcount = 0
+
+        adam = MyIntEnum.ADAM
+        self.assertEqual(adam, 0)
+        self.assertEqual(adam.str, "ADAM")
+        self.assertEqual(adam.int, 0)
+        self.assertTrue(isinstance(adam, MyIntEnum))
+        self.assertIn('ADAM', dir(MyIntEnum))
+
+        eve = MyIntEnum("EVE")
+        self.assertEqual(eve, 1)
+        self.assertEqual(eve.str, "EVE")
+        self.assertEqual(eve.int, 1)
+        self.assertTrue(isinstance(eve, MyIntEnum))
+        self.assertIn('EVE', dir(MyIntEnum))
+
+        cain = MyIntEnum(2)
+        self.assertEqual(cain, 2)
+        self.assertEqual(cain.str, "CAIN")
+        self.assertEqual(cain.int, 2)
+        self.assertTrue(isinstance(cain, MyIntEnum))
+        self.assertIn('CAIN', dir(MyIntEnum))
+
+        new_adam = MyIntEnum("ADAM")
+        self.assertEqual(id(new_adam), id(adam))
+        new_adam = MyIntEnum(0)
         self.assertEqual(id(new_adam), id(adam))
 
 
