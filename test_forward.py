@@ -55,9 +55,9 @@ class TestWAMPSession(unittest.TestCase):
         my_procedure = lambda *args: None
         self.session.register_procedure('long_uri#target', my_procedure)
         self.session.handle_wamp_message(
-            WAMPMessage.prefix('prefix', 'long_uri'))
+            WAMPMessage.PREFIX('prefix', 'long_uri'))
         self.session.handle_wamp_message(
-            WAMPMessage.prefix('', 'long_uri'))
+            WAMPMessage.PREFIX('', 'long_uri'))
         self.assertEqual(self.session.proc_for_uri('prefix:#target'),
                          self.session.proc_for_uri('long_uri#target'))
         self.assertEqual(self.session.proc_for_uri(':#target'),
@@ -70,33 +70,33 @@ class TestWAMPSession(unittest.TestCase):
     def test_call(self):
 
         def procedure_never(message=None, *args):
-            return WAMPMessage.callresult(message.call_id,
+            return WAMPMessage.CALLRESULT(message.call_id,
                                           {'proc': 'procedure_never',
                                            'args': message.args})
 
         self.session.register_procedure('procedure1')
         self.session.register_procedure('procedure2', procedure_never)
-        prefix_message = WAMPMessage.prefix('proc', 'procedure')
+        prefix_message = WAMPMessage.PREFIX('proc', 'procedure')
         self.session.handle_wamp_message(prefix_message)
-        call_message1 = WAMPMessage.call('call1', 'procedure1', 'arg1')
-        call_message2 = WAMPMessage.call('call2', 'proc:1', 'arg2')
-        call_message3 = WAMPMessage.call('call3', 'procedure2', 'arg3')
-        call_message4 = WAMPMessage.call('call4', 'procedure3', 'arg4')
+        call_message1 = WAMPMessage.CALL('call1', 'procedure1', 'arg1')
+        call_message2 = WAMPMessage.CALL('call2', 'proc:1', 'arg2')
+        call_message3 = WAMPMessage.CALL('call3', 'procedure2', 'arg3')
+        call_message4 = WAMPMessage.CALL('call4', 'procedure3', 'arg4')
         self.session.handle_wamp_message(call_message1)
         self.session.handle_wamp_message(call_message2)
         self.session.handle_wamp_message(call_message3)
         self.session.handle_wamp_message(call_message4)
         self.assertEqual(len(self.message_log), 3)
         self.assertEqual(self.message_log[0],
-                         WAMPMessage.callresult('call1',
+                         WAMPMessage.CALLRESULT('call1',
                                                 {'proc': 'procedure1',
                                                  'args': ['arg1']}))
         self.assertEqual(self.message_log[1],
-                         WAMPMessage.callresult('call2',
+                         WAMPMessage.CALLRESULT('call2',
                                                 {'proc': 'procedure1',
                                                  'args': ['arg2']}))
         self.assertEqual(self.message_log[2],
-                         WAMPMessage.callresult('call3',
+                         WAMPMessage.CALLRESULT('call3',
                                                 {'proc': 'procedure2',
                                                  'args': ['arg3']}))
 
