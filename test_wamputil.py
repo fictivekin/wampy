@@ -455,6 +455,8 @@ class TestEnumishMixins(unittest.TestCase):
         with self.assertRaises(AttributeError):
             abel = MyStrEnum(3)
         MyStrEnum._add_value_("ABEL")
+        with self.assertRaises(ValueError):
+            MyStrEnum._add_value_("ABEL")
         abel = MyStrEnum.ABEL
         self.assertEqual(abel, "ABEL")
         self.assertEqual(abel.str, "ABEL")
@@ -462,6 +464,8 @@ class TestEnumishMixins(unittest.TestCase):
         self.assertTrue(isinstance(abel, MyStrEnum))
         self.assertIn('ABEL', dir(MyStrEnum))
         MyStrEnum._remove_value_("ABEL")
+        with self.assertRaises(ValueError):
+            MyStrEnum._remove_value_("ABEL")
         with self.assertRaises(AttributeError):
             abel = MyStrEnum.ABEL
         with self.assertRaises(AttributeError):
@@ -511,6 +515,8 @@ class TestEnumishMixins(unittest.TestCase):
         with self.assertRaises(AttributeError):
             abel = MyIntEnum(3)
         MyIntEnum._add_value_("ABEL")
+        with self.assertRaises(ValueError):
+            MyIntEnum._add_value_("ABEL")
         abel = MyIntEnum.ABEL
         self.assertEqual(abel, 3)
         self.assertEqual(abel.str, "ABEL")
@@ -518,6 +524,8 @@ class TestEnumishMixins(unittest.TestCase):
         self.assertTrue(isinstance(abel, MyIntEnum))
         self.assertIn('ABEL', dir(MyIntEnum))
         MyIntEnum._remove_value_("ABEL")
+        with self.assertRaises(ValueError):
+            MyIntEnum._remove_value_("ABEL")
         with self.assertRaises(AttributeError):
             abel = MyIntEnum.ABEL
         with self.assertRaises(AttributeError):

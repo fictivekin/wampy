@@ -233,15 +233,21 @@ class _EnumishMixin(object):
     def _add_value_(cls, value):
         if value not in cls._values:
             cls._values.append(value)
+        else:
+            raise ValueError(
+                "'%s' already a value of %s" % (value, cls.__name__))
 
     @classmethod
     def _remove_value_(cls, value):
-        while value in cls._values:
-            cls._values.remove(value)
         try:
             delattr(cls, value)
         except AttributeError:
             pass
+        try:
+            cls._values.remove(value)
+        except ValueError:
+            raise ValueError(
+                "'%s' is not a value of %s" % (value, cls.__name__))
 
 
 class EnumishStr(_EnumishMixin, str):
