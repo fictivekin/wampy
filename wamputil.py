@@ -205,7 +205,7 @@ class _EnumishMixin(object):
         pass
 
     __metaclass__ = EnumishMetaclass
-    _values = []
+    _values = tuple()
     _basetype = NotImplemented
 
     def __new__(cls, value):
