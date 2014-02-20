@@ -424,7 +424,7 @@ class TestEnumishMixins(unittest.TestCase):
         instances = {'count': 0}
 
         class MyStrEnum(EnumishStr):
-            _values = ["ADAM", "EVE", "CAIN", "ABEL"]
+            _values = ["ADAM", "EVE", "CAIN"]
             newcount = 0
 
         adam = MyStrEnum.ADAM
@@ -448,6 +448,28 @@ class TestEnumishMixins(unittest.TestCase):
         self.assertTrue(isinstance(cain, MyStrEnum))
         self.assertIn('CAIN', dir(MyStrEnum))
 
+        with self.assertRaises(AttributeError):
+            abel = MyStrEnum.ABEL
+        with self.assertRaises(AttributeError):
+            abel = MyStrEnum("ABEL")
+        with self.assertRaises(AttributeError):
+            abel = MyStrEnum(3)
+        MyStrEnum._add_value_("ABEL")
+        abel = MyStrEnum.ABEL
+        self.assertEqual(abel, "ABEL")
+        self.assertEqual(abel.str, "ABEL")
+        self.assertEqual(abel.int, 3)
+        self.assertTrue(isinstance(abel, MyStrEnum))
+        self.assertIn('ABEL', dir(MyStrEnum))
+        MyStrEnum._remove_value_("ABEL")
+        with self.assertRaises(AttributeError):
+            abel = MyStrEnum.ABEL
+        with self.assertRaises(AttributeError):
+            abel = MyStrEnum("ABEL")
+        with self.assertRaises(AttributeError):
+            abel = MyStrEnum(3)
+        self.assertNotIn('ABEL', dir(MyStrEnum))
+
         new_adam = MyStrEnum("ADAM")
         self.assertEqual(id(new_adam), id(adam))
         new_adam = MyStrEnum(0)
@@ -458,7 +480,7 @@ class TestEnumishMixins(unittest.TestCase):
         instances = {'count': 0}
 
         class MyIntEnum(EnumishInt):
-            _values = ["ADAM", "EVE", "CAIN", "ABEL"]
+            _values = ["ADAM", "EVE", "CAIN"]
             newcount = 0
 
         adam = MyIntEnum.ADAM
@@ -481,6 +503,28 @@ class TestEnumishMixins(unittest.TestCase):
         self.assertEqual(cain.int, 2)
         self.assertTrue(isinstance(cain, MyIntEnum))
         self.assertIn('CAIN', dir(MyIntEnum))
+
+        with self.assertRaises(AttributeError):
+            abel = MyIntEnum.ABEL
+        with self.assertRaises(AttributeError):
+            abel = MyIntEnum("ABEL")
+        with self.assertRaises(AttributeError):
+            abel = MyIntEnum(3)
+        MyIntEnum._add_value_("ABEL")
+        abel = MyIntEnum.ABEL
+        self.assertEqual(abel, 3)
+        self.assertEqual(abel.str, "ABEL")
+        self.assertEqual(abel.int, 3)
+        self.assertTrue(isinstance(abel, MyIntEnum))
+        self.assertIn('ABEL', dir(MyIntEnum))
+        MyIntEnum._remove_value_("ABEL")
+        with self.assertRaises(AttributeError):
+            abel = MyIntEnum.ABEL
+        with self.assertRaises(AttributeError):
+            abel = MyIntEnum("ABEL")
+        with self.assertRaises(AttributeError):
+            abel = MyIntEnum(3)
+        self.assertNotIn('ABEL', dir(MyIntEnum))
 
         new_adam = MyIntEnum("ADAM")
         self.assertEqual(id(new_adam), id(adam))

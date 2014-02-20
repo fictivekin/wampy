@@ -229,6 +229,20 @@ class _EnumishMixin(object):
         new.str = values[str]
         return new
 
+    @classmethod
+    def _add_value_(cls, value):
+        if value not in cls._values:
+            cls._values.append(value)
+
+    @classmethod
+    def _remove_value_(cls, value):
+        while value in cls._values:
+            cls._values.remove(value)
+        try:
+            delattr(cls, value)
+        except AttributeError:
+            pass
+
 
 class EnumishStr(_EnumishMixin, str):
 
