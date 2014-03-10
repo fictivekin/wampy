@@ -427,6 +427,10 @@ class TestEnumishMixins(unittest.TestCase):
             _values = ["ADAM", "EVE", "CAIN"]
             newcount = 0
 
+        self.assertEqual(MyStrEnum.values, [MyStrEnum.ADAM, MyStrEnum.EVE,
+                                            MyStrEnum.CAIN])
+        self.assertTrue(all(type(v) == MyStrEnum for v in MyStrEnum.values))
+
         adam = MyStrEnum.ADAM
         self.assertEqual(adam, "ADAM")
         self.assertEqual(adam.str, "ADAM")
@@ -463,6 +467,11 @@ class TestEnumishMixins(unittest.TestCase):
         self.assertEqual(abel.int, 3)
         self.assertTrue(isinstance(abel, MyStrEnum))
         self.assertIn('ABEL', dir(MyStrEnum))
+
+        self.assertEqual(MyStrEnum.values, [MyStrEnum.ADAM, MyStrEnum.EVE,
+                                            MyStrEnum.CAIN, MyStrEnum.ABEL])
+        self.assertTrue(all(type(v) == MyStrEnum for v in MyStrEnum.values))
+
         MyStrEnum._remove_value_("ABEL")
         with self.assertRaises(ValueError):
             MyStrEnum._remove_value_("ABEL")
@@ -473,6 +482,12 @@ class TestEnumishMixins(unittest.TestCase):
         with self.assertRaises(AttributeError):
             abel = MyStrEnum(3)
         self.assertNotIn('ABEL', dir(MyStrEnum))
+
+        self.assertEqual(MyStrEnum.values, [MyStrEnum.ADAM, MyStrEnum.EVE,
+                                            MyStrEnum.CAIN])
+        self.assertTrue(all(type(v) == MyStrEnum for v in MyStrEnum.values))
+
+
 
         new_adam = MyStrEnum("ADAM")
         self.assertEqual(id(new_adam), id(adam))
@@ -486,6 +501,10 @@ class TestEnumishMixins(unittest.TestCase):
         class MyIntEnum(EnumishInt):
             _values = ["ADAM", "EVE", "CAIN"]
             newcount = 0
+
+        self.assertEqual(MyIntEnum.values, [MyIntEnum.ADAM, MyIntEnum.EVE,
+                                            MyIntEnum.CAIN])
+        self.assertTrue(all(type(v) == MyIntEnum for v in MyIntEnum.values))
 
         adam = MyIntEnum.ADAM
         self.assertEqual(adam, 0)
@@ -523,6 +542,11 @@ class TestEnumishMixins(unittest.TestCase):
         self.assertEqual(abel.int, 3)
         self.assertTrue(isinstance(abel, MyIntEnum))
         self.assertIn('ABEL', dir(MyIntEnum))
+
+        self.assertEqual(MyIntEnum.values, [MyIntEnum.ADAM, MyIntEnum.EVE,
+                                            MyIntEnum.CAIN, MyIntEnum.ABEL])
+        self.assertTrue(all(type(v) == MyIntEnum for v in MyIntEnum.values))
+
         MyIntEnum._remove_value_("ABEL")
         with self.assertRaises(ValueError):
             MyIntEnum._remove_value_("ABEL")
@@ -533,6 +557,10 @@ class TestEnumishMixins(unittest.TestCase):
         with self.assertRaises(AttributeError):
             abel = MyIntEnum(3)
         self.assertNotIn('ABEL', dir(MyIntEnum))
+
+        self.assertEqual(MyIntEnum.values, [MyIntEnum.ADAM, MyIntEnum.EVE,
+                                            MyIntEnum.CAIN])
+        self.assertTrue(all(type(v) == MyIntEnum for v in MyIntEnum.values))
 
         new_adam = MyIntEnum("ADAM")
         self.assertEqual(id(new_adam), id(adam))

@@ -202,7 +202,10 @@ class _EnumishMixin(object):
     """
 
     class EnumishMetaclass(AttributeFactoryMixin, type):
-        pass
+
+        @property
+        def values(cls):
+            return [cls(value) for value in cls._values]
 
     __metaclass__ = EnumishMetaclass
     _values = tuple()
