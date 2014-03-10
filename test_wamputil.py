@@ -427,10 +427,6 @@ class TestEnumishMixins(unittest.TestCase):
             _values = ["ADAM", "EVE", "CAIN"]
             newcount = 0
 
-        self.assertEqual(MyStrEnum.values, [MyStrEnum.ADAM, MyStrEnum.EVE,
-                                            MyStrEnum.CAIN])
-        self.assertTrue(all(type(v) == MyStrEnum for v in MyStrEnum.values))
-
         adam = MyStrEnum.ADAM
         self.assertEqual(adam, "ADAM")
         self.assertEqual(adam.str, "ADAM")
@@ -438,7 +434,7 @@ class TestEnumishMixins(unittest.TestCase):
         self.assertTrue(isinstance(adam, MyStrEnum))
         self.assertIn('ADAM', dir(MyStrEnum))
 
-        eve = MyStrEnum("EVE")
+        eve = MyStrEnum(u"EVE")
         self.assertEqual(eve, "EVE")
         self.assertEqual(eve.str, "EVE")
         self.assertEqual(eve.int, 1)
@@ -451,6 +447,10 @@ class TestEnumishMixins(unittest.TestCase):
         self.assertEqual(cain.int, 2)
         self.assertTrue(isinstance(cain, MyStrEnum))
         self.assertIn('CAIN', dir(MyStrEnum))
+
+        self.assertEqual(MyStrEnum.values, [MyStrEnum.ADAM, MyStrEnum.EVE,
+                                            MyStrEnum.CAIN])
+        self.assertTrue(all(type(v) == MyStrEnum for v in MyStrEnum.values))
 
         with self.assertRaises(AttributeError):
             abel = MyStrEnum.ABEL
@@ -502,10 +502,6 @@ class TestEnumishMixins(unittest.TestCase):
             _values = ["ADAM", "EVE", "CAIN"]
             newcount = 0
 
-        self.assertEqual(MyIntEnum.values, [MyIntEnum.ADAM, MyIntEnum.EVE,
-                                            MyIntEnum.CAIN])
-        self.assertTrue(all(type(v) == MyIntEnum for v in MyIntEnum.values))
-
         adam = MyIntEnum.ADAM
         self.assertEqual(adam, 0)
         self.assertEqual(adam.str, "ADAM")
@@ -513,7 +509,7 @@ class TestEnumishMixins(unittest.TestCase):
         self.assertTrue(isinstance(adam, MyIntEnum))
         self.assertIn('ADAM', dir(MyIntEnum))
 
-        eve = MyIntEnum("EVE")
+        eve = MyIntEnum(u"EVE")
         self.assertEqual(eve, 1)
         self.assertEqual(eve.str, "EVE")
         self.assertEqual(eve.int, 1)
@@ -526,6 +522,10 @@ class TestEnumishMixins(unittest.TestCase):
         self.assertEqual(cain.int, 2)
         self.assertTrue(isinstance(cain, MyIntEnum))
         self.assertIn('CAIN', dir(MyIntEnum))
+
+        self.assertEqual(MyIntEnum.values, [MyIntEnum.ADAM, MyIntEnum.EVE,
+                                            MyIntEnum.CAIN])
+        self.assertTrue(all(type(v) == MyIntEnum for v in MyIntEnum.values))
 
         with self.assertRaises(AttributeError):
             abel = MyIntEnum.ABEL

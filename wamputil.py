@@ -221,7 +221,7 @@ class _EnumishMixin(object):
             if value not in cls._values:
                 raise AttributeError("%s: '%s' is not a valid value" %
                                      (cls.__name__, value))
-            values = {int: cls._values.index(value), str: value}
+            values = {int: cls._values.index(value), str: str(value)}
         else:
             raise TypeError("%s: argument must be <int> or <str>" %
                             cls.__name__)
